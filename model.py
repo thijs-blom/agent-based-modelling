@@ -62,7 +62,7 @@ class BoidFlockers(Model):
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
             velocity = np.random.random(2) * 2 - 1
-            boid = HUman(
+            boid = Human(
                 i,
                 self,
                 pos,
