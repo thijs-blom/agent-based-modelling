@@ -36,8 +36,12 @@ class Human(Agent):
         self.pos = np.array(pos)
         self.dest = np.array(dest)
         self.speed = speed
+        self.max_speed = speed
         self.velocity = velocity
         self.vision = vision
+
+        # Default relaxation parameter
+        self.tau = 1
 
     @staticmethod
     def _gradient(func, val):
@@ -83,20 +87,20 @@ class Human(Agent):
         r = self.pos - other.pos
 
         # We do gradient descent, so return the negative gradient
-        def f(x): v(b(x))
-        return -1.0 * self._gradient(f, r)
+        def f(x): return v(b(x))
+        return -1.0 * Human._gradient(f, r)
 
     def obstacle_effect(self, obstacle_point):
         """Repulsive effect from an obstacle"""
-        def u(r_norm):
+        def u(r):
             """Potential function"""
             u0 = 10
             R = 0.2
-            return u0 * np.exp(-r_norm/R)
+            return u0 * np.exp(-np.linalg.norm(r)/R)
 
         # We do gradient descent, so return the negative gradient
-        r_norm = np.linalg.norm(self.pos - obstacle_point)
-        return -1.0 * self._gradient(u, r_norm)
+        r = self.pos - obstacle_point
+        return -1.0 * self._gradient(u, r)
 
     def attract_effect(self, other_point):
         """Attractive effect to places/people of interest"""
@@ -128,10 +132,6 @@ class Human(Agent):
             self.velocity += self.sight_weight(-effect) * effect
 
         # Compute repulsive effect from obstacles
-        # TODO. This requires some knowledge of the obstacles.
-        # For each obstacle, we need the closest point of that obstacle to the agent
-        # Should probably be modelled in the environment/model as a function that
-        # retrieves the closest point
         for obstacle in self.model.obstacles:
             obstacle_point = obstacle.get_closest_point(self.pos)
             self.velocity += self.obstacle_effect(obstacle_point)
@@ -140,6 +140,7 @@ class Human(Agent):
         # TODO. Currently not implemented
 
         # Update the position
-        self.velocity /= np.linalg.norm(self.velocity)
-        new_pos = self.pos + self.velocity * self.speed
+        self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
+        self.velocity /= np.linalg.norm(self.velocity) * self.speed
+        new_pos = self.pos + self.velocity
         self.model.space.move_agent(self, new_pos)
