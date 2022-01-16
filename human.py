@@ -65,7 +65,7 @@ class Human(Agent):
 
     def dest_effect(self):
         """Attractive effect to the goal"""
-        return (self.speed * self.desired_dir() - self.velocity) / self.tau
+        return (self.max_speed * self.desired_dir() - self.velocity) / self.tau
 
     def people_effect(self, other):
         """Repulsive effect from other people"""

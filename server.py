@@ -14,7 +14,7 @@ boid_canvas = SimpleCanvas(boid_draw, 500, 500)
 
 wall = Wall(np.array([0, 30]), np.array([50, 0]))
 model_params = {
-    "population": 400,
+    "population": 100,
     "width": 100,
     "height": 100,
     "speed": 5,
