@@ -58,11 +58,7 @@ class SocialForce(Model):
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
             velocity = np.random.random(2) * 2 - 1
-<<<<<<< HEAD
             human = Human(
-=======
-            boid = Human(
->>>>>>> 66c254949074a586eca8c0fc91f8975b3695ab9c
                 i,
                 self,
                 pos,

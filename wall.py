@@ -25,7 +25,7 @@ class Wall(Obstacle):
 
         # Solve the system defined by p1 + a*(p2-1) = other_point + b*v)
         # TODO: check if this efficient, or can be done in a clearer way
-        A = np.stack((line_vec, -v))
+        A = np.stack((line_vec, -v), axis=1)
         res = np.linalg.solve(A, other_point - self.p1)
 
         # Check whether the project of other_point on the (infinite) line
