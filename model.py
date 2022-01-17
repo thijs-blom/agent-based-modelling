@@ -1,7 +1,7 @@
 """
-Flockers
+Social Force Model
 =============================================================
-A Mesa implementation of Craig Reynolds's Boids flocker model.
+A Mesa implementation of the social force model.
 Uses numpy arrays to represent vectors.
 """
 
@@ -43,7 +43,7 @@ class SocialForce(Model):
         self.vision = vision
         self.speed = speed
         self.schedule = RandomActivation(self)
-        self.space = ContinuousSpace(width, height, True)
+        self.space = ContinuousSpace(width, height, False)
         self.obstacles = obstacles
         self.dest = dest
         self.make_agents()
@@ -71,4 +71,12 @@ class SocialForce(Model):
             self.schedule.add(human)
 
     def step(self):
+        '''Let the agent move/act.'''
         self.schedule.step()
+
+    def remove_agent(self, agent):
+        '''
+        Method that removes an agent from the grid and the correct scheduler.
+        '''
+        self.space.remove_agent(agent)
+        self.schedule.remove(agent)
