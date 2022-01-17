@@ -143,4 +143,19 @@ class Human(Agent):
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
         self.velocity /= np.linalg.norm(self.velocity) * self.speed
         new_pos = self.pos + self.velocity
+
+        # if out of bounds, put at bound
+        if new_pos[0] > self.model.space.width:
+            new_pos[0] = self.model.space.width
+        elif new_pos[0] < 0:
+            new_pos[0] = 0
+
+        if new_pos[1] > self.model.space.height:
+            new_pos[1] = self.model.space.height
+        elif new_pos[1] < 0:
+            new_pos[1] = 0
         self.model.space.move_agent(self, new_pos)
+
+        # Remove once the desitination is reached
+        if self.pos[0] == 0 and self.pos[1] == 0:
+            self.model.remove_agent(self)
