@@ -11,7 +11,6 @@ import numpy as np
 def human_draw(agent):
     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Red"}
 
-<<<<<<< Updated upstream
 
 def wall_draw(wall):
     return {"Shape": "line", "w": 5, "Color": "Black"}
