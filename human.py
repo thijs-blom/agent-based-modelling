@@ -101,10 +101,10 @@ class Human(Agent):
         # We do gradient descent, so return the negative gradient
         def f(x):
             obstacle_point = obstacle.get_closest_point(x)
-            r = self.pos - obstacle_point
+            r = x - obstacle_point
             return u(r)
 
-        return -1.0 * self._gradient(f, self.pos)
+        return -1.0 * Human._gradient(f, self.pos)
 
     def attract_effect(self, other_point):
         """Attractive effect to places/people of interest"""
@@ -141,6 +141,9 @@ class Human(Agent):
 
         # Compute attractive effect to points/people of interest
         # TODO. Currently not implemented
+
+        # Fluctuations
+        self.velocity += np.random.rand(2) * 2 - 1
 
         # Update the position
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
