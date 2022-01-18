@@ -48,6 +48,6 @@ model_params = {
 }
 
 #server = ModularServer(SocialForce, [canvas, chart], "Boids", model_params)
-#server = ModularServer(SocialForce, [canvas], "Boids", model_params)
+server = ModularServer(SocialForce, [canvas], "Boids", model_params)
 
 server.launch()
