@@ -10,6 +10,7 @@ import numpy as np
 from mesa import Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
 
 from human import Human
 
@@ -47,7 +48,10 @@ class SocialForce(Model):
         self.obstacles = obstacles
         self.dest = dest
         self.make_agents()
+
+        self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
         self.running = True
+        self.datacollector.collect(self)
 
     def make_agents(self):
         """
@@ -73,6 +77,9 @@ class SocialForce(Model):
     def step(self):
         '''Let the agent move/act.'''
         self.schedule.step()
+
+        # Save the statistics
+        self.datacollector.collect(self)
 
     def remove_agent(self, agent):
         '''
