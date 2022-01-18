@@ -17,10 +17,7 @@ def wall_draw(wall):
     return {"Shape": "line", "w": 5, "Color": "Black"}
 
 canvas = SimpleCanvas(human_draw, wall_draw, 500, 500)
-#chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}])
-=======
 chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}])
->>>>>>> Stashed changes
 
 wall = Wall(np.array([50, 0]), np.array([50, 200]))
 
