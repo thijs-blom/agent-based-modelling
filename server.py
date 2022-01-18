@@ -1,6 +1,6 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
-from mesa.visualization.modules import ChartModule
+#from mesa.visualization.modules import ChartModule
 
 from model import SocialForce
 from SimpleContinuousModule import SimpleCanvas
@@ -12,7 +12,7 @@ def boid_draw(agent):
     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Red"}
 
 canvas = SimpleCanvas(boid_draw, 500, 500)
-chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}])
+#chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}])
 
 wall = Wall(np.array([50, 0]), np.array([50, 200]))
 
@@ -47,6 +47,7 @@ model_params = {
     "dest": np.array([0, 0])
 }
 
-server = ModularServer(SocialForce, [canvas, chart], "Boids", model_params)
+#server = ModularServer(SocialForce, [canvas, chart], "Boids", model_params)
+#server = ModularServer(SocialForce, [canvas], "Boids", model_params)
 
 server.launch()
