@@ -157,5 +157,5 @@ class Human(Agent):
         self.model.space.move_agent(self, new_pos)
 
         # Remove once the desitination is reached
-        if self.pos[0] == 0 and self.pos[1] == 0:
+        if self.pos[0] == self.dest[0] and self.pos[1] == self.dest[1]:
             self.model.remove_agent(self)
