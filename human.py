@@ -47,13 +47,13 @@ class Human(Agent):
     def _gradient(func, val):
         """Compute the gradient of func at val using finite differencing"""
         # Settings for gradient descent
-        delta = 1e-3
+        delta = 1e-5
         dx = delta * np.array([1, 0])
         dy = delta * np.array([0, 1])
 
         # Compute the gradient per variable
-        grad_x = (func(val - dx) + func(val + dx)) / (2 * delta)
-        grad_y = (func(val - dy) + func(val + dy)) / (2 * delta)
+        grad_x = (func(val + dx) - func(val - dx)) / (2 * delta)
+        grad_y = (func(val + dy) - func(val - dy)) / (2 * delta)
 
         # Return the complete gradient
         return np.array([grad_x, grad_y])
@@ -90,7 +90,7 @@ class Human(Agent):
         def f(x): return v(b(x))
         return -1.0 * Human._gradient(f, r)
 
-    def obstacle_effect(self, obstacle_point):
+    def obstacle_effect(self, obstacle):
         """Repulsive effect from an obstacle"""
         def u(r):
             """Potential function"""
@@ -99,8 +99,12 @@ class Human(Agent):
             return u0 * np.exp(-np.linalg.norm(r)/R)
 
         # We do gradient descent, so return the negative gradient
-        r = self.pos - obstacle_point
-        return -1.0 * self._gradient(u, r)
+        def f(x):
+            obstacle_point = obstacle.get_closest_point(x)
+            r = self.pos - obstacle_point
+            return u(r)
+
+        return -1.0 * self._gradient(f, self.pos)
 
     def attract_effect(self, other_point):
         """Attractive effect to places/people of interest"""
@@ -133,15 +137,15 @@ class Human(Agent):
 
         # Compute repulsive effect from obstacles
         for obstacle in self.model.obstacles:
-            obstacle_point = obstacle.get_closest_point(self.pos)
-            self.velocity += self.obstacle_effect(obstacle_point)
+            self.velocity += self.obstacle_effect(obstacle)
 
         # Compute attractive effect to points/people of interest
         # TODO. Currently not implemented
 
         # Update the position
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
-        self.velocity /= np.linalg.norm(self.velocity) * self.speed
+        self.velocity /= np.linalg.norm(self.velocity)
+        self.velocity *= self.speed
         new_pos = self.pos + self.velocity
 
         # if out of bounds, put at bound

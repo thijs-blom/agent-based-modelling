@@ -13,7 +13,7 @@ def boid_draw(agent):
 
 boid_canvas = SimpleCanvas(boid_draw, 500, 500)
 
-wall = Wall(np.array([0, 30]), np.array([50, 0]))
+wall = Wall(np.array([50, 0]), np.array([50, 200]))
 
 model_params = {
     "population": UserSettableParameter(

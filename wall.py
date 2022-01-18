@@ -20,10 +20,10 @@ class Wall(Obstacle):
         """Compute the closest point of the obstacle to the given point"""
         line_vec = self.p2 - self.p1
         # Compute a normal of p2 - p1
-        v = np.flip(line_vec)
+        v = np.copy(np.flip(line_vec))
         v[0] *= -1.0
 
-        # Solve the system defined by p1 + a*(p2-1) = other_point + b*v)
+        # Solve the system defined by p1 + a*(p2-p1) = other_point + b*v)
         # TODO: check if this efficient, or can be done in a clearer way
         A = np.stack((line_vec, -v), axis=1)
         res = np.linalg.solve(A, other_point - self.p1)
