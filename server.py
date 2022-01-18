@@ -16,9 +16,13 @@ def wall_draw(wall):
     return {"Shape": "line", "w": 5, "Color": "Black"}
 
 canvas = SimpleCanvas(human_draw, wall_draw, 500, 500)
-chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}])
+chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}], 10, 25)
 
-wall = Wall(np.array([50, 0]), np.array([50, 200]))
+wall1 = Wall(np.array([50, 0]), np.array([50, 200]))
+side_wall1 = Wall(np.array([0, 10]), np.array([0, 500]))
+side_wall2 = Wall(np.array([0, 0]), np.array([500, 0]))
+side_wall3 = Wall(np.array([500, 0]), np.array([500, 500]))
+side_wall4 = Wall(np.array([0, 500]), np.array([500, 500]))
 
 
 model_params = {
@@ -48,7 +52,7 @@ model_params = {
         100,
         description="Vision of the agents",
     ),
-    "obstacles": [wall],
+    "obstacles": [wall1, side_wall1, side_wall2, side_wall3, side_wall4],
     "dest": np.array([0, 0])
 }
 

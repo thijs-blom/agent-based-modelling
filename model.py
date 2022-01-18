@@ -17,7 +17,7 @@ from human import Human
 
 class SocialForce(Model):
     """
-    Flocker model class. Handles agent creation, placement and scheduling.
+    Social Force model. Handles agent creation, placement, exiting and scheduling.
     """
 
     def __init__(
@@ -80,6 +80,9 @@ class SocialForce(Model):
 
         # Save the statistics
         self.datacollector.collect(self)
+
+        if self.schedule.get_agent_count() == 0:
+            self.running = False
 
     def remove_agent(self, agent):
         '''
