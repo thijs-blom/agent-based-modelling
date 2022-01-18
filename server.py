@@ -8,13 +8,18 @@ from wall import Wall
 import numpy as np
 
 
-def boid_draw(agent):
+def human_draw(agent):
     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Red"}
 
-canvas = SimpleCanvas(boid_draw, 500, 500)
+canvas = SimpleCanvas(human_draw, 500, 500)
 #chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}])
 
 wall = Wall(np.array([50, 0]), np.array([50, 200]))
+
+# Draws the wall (but not yet both agents and wall
+# def wall_draw(wall):
+#   return {"Shape": "line", "pos1": [50, 0], "pos2": [50, 200], "w": 5, "Color": "Black"}
+# canvas = SimpleCanvas(wall_draw, 500, 500)
 
 model_params = {
     "population": UserSettableParameter(

@@ -10,6 +10,8 @@ var ContinuousVisualization = function(height, width, context) {
 				this.drawRectange(p.x, p.y, p.w, p.h, p.Color, p.Filled);
 			if (p.Shape == "circle")
 				this.drawCircle(p.x, p.y, p.r, p.Color, p.Filled);
+			if (p.Shape == "line")
+				this.drawLine(p.pos1, p.pos2, p.w, p.Color);
 		};
 
 	};
@@ -48,6 +50,16 @@ var ContinuousVisualization = function(height, width, context) {
 			context.fillRect(x0, y0, dx, dy);
 		else
 			context.strokeRect(x0, y0, dx, dy);
+	};
+	
+	this.drawLine = function(pos1, pos2, w, color) {
+		context.lineWidth = w;
+		context.strokeStyle = color;
+		
+		context.beginPath();
+		context.moveTo(...pos1);
+		context.lineTo(...pos2);
+		context.stroke();
 	};
 
 	this.resetCanvas = function() {
