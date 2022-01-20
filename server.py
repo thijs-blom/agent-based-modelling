@@ -19,16 +19,19 @@ def wall_draw(wall):
 canvas = SimpleCanvas(human_draw, wall_draw, 500, 500)
 chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}], 10, 25)
 
-width = 100
-height = 100
+width = 10
+height = 10
 
-wall1 = Wall(np.array([50, 0]), np.array([50, 200]))
+#wall1 = Wall(np.array([50, 0]), np.array([50, 200]))
 side_wall1 = Wall(np.array([0, 2]), np.array([0, height]))
 side_wall2 = Wall(np.array([0, 0]), np.array([width, 0]))
 side_wall3 = Wall(np.array([width, 0]), np.array([width, height]))
-side_wall4 = Wall(np.array([0, height]), np.array([width, height]))
+#side_wall4 = Wall(np.array([0, height]), np.array([width, height]))
+side_wall4 = Wall(np.array([0, height]), np.array([48, height]))
+side_wall5 = Wall(np.array([50, height]), np.array([width, height]))
 
-exit = Exit(np.array([0,0]), np.array([0,2]))
+exit1 = Exit(np.array([0,0]), np.array([0,2]))
+exit2 = Exit(np.array([48,100]), np.array([50,100]))
 
 
 model_params = {
@@ -58,8 +61,8 @@ model_params = {
         100,
         description="Vision of the agents",
     ),
-    "obstacles": [side_wall1, side_wall2, side_wall3, side_wall4],
-    "exits": [exit]
+    "obstacles": [side_wall1, side_wall2, side_wall3, side_wall4, side_wall5],
+    "exits": [exit1, exit2]
 }
 
 server = ModularServer(SocialForce, [canvas, chart], "Escape Panic", model_params)

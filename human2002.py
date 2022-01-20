@@ -2,6 +2,7 @@ import numpy as np
 # from mesa import Agent
 from CommonHuman2002 import CommonHuman
 from obstacle import Obstacle
+from dead import Dead
 
 
 class Human(CommonHuman):
@@ -65,7 +66,7 @@ class Human(CommonHuman):
         self.max_speed = max_speed
         self.velocity = velocity
         self.vision = vision
-        self.mass = mass
+        self.mass = np.random.random() * 100
         # mass maybe not necessary, I don't completely get how it is used according to force
         self.radii = radii
         self.lam = lam
@@ -73,6 +74,7 @@ class Human(CommonHuman):
         self.avg_speed = avg_speed
         self.init_speed = init_speed
         self.is_leader = is_leader
+        self.energy = 1
 
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
@@ -91,13 +93,17 @@ class Human(CommonHuman):
         # eq 11 of baseline paper
         if self.timestep > 1:
             self.avg_speed = (self.avg_speed * (self.timestep - 1) + self.speed) / self.timestep
+            #panic = 0
+            #panic = 1 - self.avg_speed / self.init_speed
+            #self.avg_speed = (1 - panic) * self.init_speed + panic * self.max_speed
         else:
             # if timestep = 0, then the avg_velocity is just the first velocity
+            #panic = 0
             self.avg_speed = self.init_speed
             # so the individual's panic_index is initialized as 0 at the begining
             # TODO: Is initial velocity the max_speed ???
         
-        # testing testing 
+        # testing testing
         if self.avg_speed / self.max_speed > 1:
             raise ValueError
 
@@ -114,7 +120,7 @@ class Human(CommonHuman):
         """Compute the force of noise scaled by individual's panic level"""
         # scale of noise : eq 10 from baseline paper
         panic_index = self.panic_index()
-        noise_scale = (1-panic_index)*Human.min_noise + panic_index * Human.max_noise
+        noise_scale = (1-panic_index)* Human.min_noise + panic_index * Human.max_noise
         # the random force is assumed to be random normal with scale = noise scale
         return np.random.normal(loc=0.0, scale=noise_scale)
         # return 0
@@ -251,8 +257,20 @@ class Human(CommonHuman):
         self.dest = self.nearest_exit().get_center()
         # Compute accelaration term of agent
         self.velocity += self.acceleration_term() / self.mass
+
+        neighbours = self.model.space.get_neighbors(self.pos, 0.5, False)
+        
+        for other in neighbours:
+            distance = np.sqrt((self.pos[0] - other.pos[0])**2 + (self.pos[1] - other.pos[1])**2)
+            self.energy -= distance / 10
+        if self.energy <= 0:
+            casualty = Dead(self.pos, self.mass/100)
+            self.model.obstacles.append(casualty)
+            self.model.remove_agent(self)
+            return
  
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
+
         for other in neighbours:
             #If we also define obstacles as agent, then we should first classify the type of agent then we apply human or obs force
             # Compute repulsive effect from other people
@@ -268,7 +286,7 @@ class Human(CommonHuman):
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
         self.velocity /= np.linalg.norm(self.velocity)
         self.velocity *= self.speed
-        new_pos = self.pos + self.velocity 
+        new_pos = self.pos + self.velocity
         
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:
