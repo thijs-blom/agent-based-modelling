@@ -21,12 +21,16 @@ def wall_draw(wall):
 canvas = SimpleCanvas(human_draw, wall_draw, 500, 500)
 chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}], 10, 25)
 
-side_wall1 = Wall(np.array([0, 10]), np.array([0, 500]))
-side_wall2 = Wall(np.array([0, 0]), np.array([500, 0]))
-side_wall3 = Wall(np.array([500, 0]), np.array([500, 500]))
-side_wall4 = Wall(np.array([0, 500]), np.array([500, 500]))
+width = 100
+height = 100
 
-exit = Exit(np.array([0,0]), np.array([0,10]))
+wall1 = Wall(np.array([50, 0]), np.array([50, 200]))
+side_wall1 = Wall(np.array([0, 2]), np.array([0, height]))
+side_wall2 = Wall(np.array([0, 0]), np.array([width, 0]))
+side_wall3 = Wall(np.array([width, 0]), np.array([width, height]))
+side_wall4 = Wall(np.array([0, height]), np.array([width, height]))
+
+exit = Exit(np.array([0,0]), np.array([0,2]))
 
 model_params = {
     "population": UserSettableParameter(
@@ -37,7 +41,8 @@ model_params = {
         1000,
         description="The initial population",
     ),
-
+    "width": width,
+    "height": height,
     "vision": UserSettableParameter(
         "slider",
         "Vision",
