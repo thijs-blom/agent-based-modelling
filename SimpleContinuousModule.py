@@ -19,7 +19,7 @@ class SimpleCanvas(VisualizationElement):
             self.canvas_width, self.canvas_height
         )
         self.js_code = "elements.push(" + new_element + ");"
-
+        
     def render(self, model):
         space_state = []
         for obj in model.schedule.agents:
@@ -33,8 +33,14 @@ class SimpleCanvas(VisualizationElement):
 
         for obj in model.obstacles:
             portrayal = self.wall_portrayal(obj)
-            portrayal["pos1"] = obj.p1.tolist()
-            portrayal["pos2"] = obj.p2.tolist()
+                
+            x1 = obj.p1[0] * (self.canvas_width / model.space.x_max)
+            y1 = obj.p1[1] * (self.canvas_height / model.space.y_max)
+            x2 = obj.p2[0] * (self.canvas_width / model.space.x_max)
+            y2 = obj.p2[1] * (self.canvas_height / model.space.y_max)
+                
+            portrayal["pos1"] = [x1, y1]
+            portrayal["pos2"] = [x2, y2]
             space_state.append(portrayal)
 
         return space_state

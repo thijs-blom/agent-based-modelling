@@ -49,6 +49,7 @@ class SocialForce(Model):
         self.obstacles = obstacles
         self.exits = exits
         self.make_agents()
+        self.count = 0
 
         self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
         self.running = True
@@ -77,12 +78,15 @@ class SocialForce(Model):
     def step(self):
         '''Let the agent move/act.'''
         self.schedule.step()
+        self.count += 1
 
         # Save the statistics
         self.datacollector.collect(self)
 
         if self.schedule.get_agent_count() == 0:
             self.running = False
+
+        return self.count
 
     def remove_agent(self, agent):
         '''

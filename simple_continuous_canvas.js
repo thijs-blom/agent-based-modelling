@@ -87,7 +87,7 @@ var Simple_Continuous_Module = function(canvas_width, canvas_height) {
 		canvasDraw.resetCanvas();
 		canvasDraw.draw(data);
 	};
-
+	
 	this.reset = function() {
 		canvasDraw.resetCanvas();
 	};
