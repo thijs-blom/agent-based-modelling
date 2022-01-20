@@ -2,7 +2,7 @@ import numpy as np
 # from mesa import Agent
 from CommonHuman2002 import *
 
-class Human2002(CommonHuman):
+class Human(CommonHuman):
     """
     An agent following rules from the social force model.
     Adapted from:
@@ -18,6 +18,8 @@ class Human2002(CommonHuman):
         sfc: sliding friction force constant
         lead_strength: the leading strength of any leader neighbor agent
         lead_range: the leading force impact range of any leader neighbor agent
+        soc_strength: the interaction strength between agent and the others
+        soc_range: the range of replusive interaction 
     """
 
     def __init__(
@@ -32,12 +34,9 @@ class Human2002(CommonHuman):
         mass,
         radii,
         lam,
-        panic,
         current_timestep,
         avg_speed,
         init_speed,
-        soc_strength,
-        soc_range,
         is_leader,
     ):
         """
@@ -58,8 +57,6 @@ class Human2002(CommonHuman):
             current_timestep: The current time step t
             avg_speed: The speed updated at t-1 or initialized at t = 0
             init_speed: The initial speed of agent
-            soc_strength: the interaction strength between agent and the others
-            soc_range: the range of replusive interaction 
             is_leader: whether the agent is a leader
         """
         super().__init__(unique_id, model)
@@ -69,14 +66,12 @@ class Human2002(CommonHuman):
         self.velocity = velocity
         self.vision = vision
         self.mass = mass
+        # mass maybe not necessary, I don't completely get how it is used according to force
         self.radii = radii
         self.lam = lam
-        self.panic = panic
         self.timestep = current_timestep
         self.avg_speed = avg_speed
         self.init_speed = init_speed
-        self.soc_strength = soc_strength
-        self.soc_range = soc_range
         self.is_leader = is_leader
 
 
@@ -122,7 +117,7 @@ class Human2002(CommonHuman):
 
     def acceleration_term(self):
         """Compute the acceleration Term of agent"""
-        return (self.desired_speed * self.desired_dir() - self.velocity) / super().tau
+        return (self.desired_speed() * self.desired_dir() - self.velocity) / super().tau
 
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
@@ -163,8 +158,8 @@ class Human2002(CommonHuman):
         n_ij_val = n_ij(self,other)
 
         # the social replusive (distancing) force: eq 3 in baseline
-        temp = contact_diff / self.soc_range
-        soc_force = self.soc_strength * np.exp(temp) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ij(self, other)) )
+        temp = contact_diff / super().soc_range
+        soc_force = super().soc_strength * np.exp(temp) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ij(self, other)) )
         
         # the attraction force from leaders
         if other.is_leader:
@@ -220,12 +215,12 @@ class Human2002(CommonHuman):
 
         obstacle_point = obstacle.get_closest_point(self)
         contact_diff = self.radii - d_ib(self,obstacle_point)
-        temp = contact_diff / self.soc_range
+        temp = contact_diff / super().soc_range
         theta_val = theta(contact_diff)
         tib_val = t_ib(self,obstacle_point)
 
         # eq 7 in baseline
-        obt_force =  self.soc_strength * np.exp(temp) + super().bfc * theta_val
+        obt_force =  super().soc_strength * np.exp(temp) + super().bfc * theta_val
         obt_force *= n_ib(self,obstacle_point)
         obt_force -= super().sfc * theta_val * (self.velocity * tib_val) * tib_val
         
@@ -239,16 +234,41 @@ class Human2002(CommonHuman):
         """
         Compute all forces acting on this agent, update its velocity and move
         """
-        # Compute attractive effect to destination
+        # Compute accelaration term of agent
+        self.velocity += self.acceleration_term
+ 
+        neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
+        for other in neighbours:
+            #If we also define obstacles as agent, then we should first classify the type of agent then we apply human or obs force
+            # Compute repulsive effect from other people
+            if isinstance(other,Human2002):
+                self.velocity += self.people_effect(other)
+            # Compute repulsive effect from obstacles
+            elif isinstance(other,obstacle2002):
+                self.velocity += self.boundary_effect(other)
 
-        # Compute repulsive effect from other people
-
-        # Compute repulsive effect from obstacles
-
-        # Compute attractive effect to points/people of interest
-
-        # Update the position
-
+        # Compute random noise force
+        self.velocity += self.panic_noise_effect(self.panic_index)
+        # Update the movement, position features of the agent
+        self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
+        self.velocity /= np.linalg.norm(self.velocity)
+        self.velocity *= self.speed
+        new_pos = self.pos + self.velocity / self.mass
+        
         # if out of bounds, put at bound
+        if new_pos[0] > self.model.space.width:
+            new_pos[0] = self.model.space.width
+        elif new_pos[0] < 0:
+            new_pos[0] = 0
 
+        if new_pos[1] > self.model.space.height:
+            new_pos[1] = self.model.space.height
+        elif new_pos[1] < 0:
+            new_pos[1] = 0
+        self.model.space.move_agent(self, new_pos)
+
+        self.timestep += 1
         # Remove once the desitination is reached
+        # TODO: list all the parameter of agent
+        # velocity
+        # 

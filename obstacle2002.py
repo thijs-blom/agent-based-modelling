@@ -1,8 +1,8 @@
 import numpy as np
 
-class Obstacle():
+class Wall():
     """Base class for an obstacle that agents must avoid"""
-    
+    # Adapt it from wall.py
     def __init__(self, p1: np.array, p2: np.array):
         """Initialise a wall obstacle
 

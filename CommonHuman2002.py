@@ -31,8 +31,13 @@ class CommonHuman(Agent):
 
     # TODO: All the below parameters are not well defined yet !!!
     # TODO: Check 2002 for Default relaxation parameter
+    # TODO: Check if more parameters can be fixed, or maybe varied per group of population, such as male and female
     tau = 0.5
     min_noise = 0.1
     max_noise = 1
-    lead_strength = 1
-    lead_range = 5
+    lead_strength = 2000
+    lead_range = 10
+    soc_strength = 2000
+    soc_range = 10
+    bfc = 10000
+    sfc = 10000
