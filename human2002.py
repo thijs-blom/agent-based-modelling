@@ -1,6 +1,8 @@
 import numpy as np
 # from mesa import Agent
-from CommonHuman2002 import *
+from CommonHuman2002 import CommonHuman
+from obstacle import Obstacle
+
 
 class Human(CommonHuman):
     """
@@ -27,7 +29,6 @@ class Human(CommonHuman):
         unique_id,
         model,
         pos,
-        dest,
         velocity,
         max_speed,
         vision,
@@ -61,7 +62,6 @@ class Human(CommonHuman):
         """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
-        self.dest = np.array(dest)
         self.max_speed = max_speed
         self.velocity = velocity
         self.vision = vision
@@ -74,6 +74,8 @@ class Human(CommonHuman):
         self.init_speed = init_speed
         self.is_leader = is_leader
 
+        # Go to the (center of) the nearest exit
+        self.dest = self.nearest_exit().get_center()
 
         
         self.tau = 0.5
@@ -112,14 +114,14 @@ class Human(CommonHuman):
         """Compute the force of noise scaled by individual's panic level"""
         # scale of noise : eq 10 from baseline paper
         panic_index = self.panic_index()
-        noise_scale = (1-panic_index)*super().min_noise + panic_index * super().max_noise
+        noise_scale = (1-panic_index)*Human.min_noise + panic_index * Human.max_noise
         # the random force is assumed to be random normal with scale = noise scale
         return np.random.normal(loc=0.0, scale=noise_scale)
         # return 0
 
     def acceleration_term(self):
         """Compute the acceleration Term of agent"""
-        return (self.desired_speed() * self.desired_dir() - self.velocity) / super().tau
+        return (self.desired_speed() * self.desired_dir() - self.velocity) / Human.tau
 
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
@@ -160,8 +162,8 @@ class Human(CommonHuman):
         n_ij_val = n_ij(self,other)
 
         # the social replusive (distancing) force: eq 3 in baseline
-        temp = contact_diff / super().soc_range
-        soc_force = super().soc_strength * np.exp(temp) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ij(self, other)) )
+        temp = contact_diff / Human.soc_range
+        soc_force = Human.soc_strength * np.exp(temp) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ij(self, other)) )
         
         # the attraction force from leaders
         if other.is_leader:
@@ -169,11 +171,11 @@ class Human(CommonHuman):
             # TODO: Check if we agree on the formulation of leading force
 
             # att_force is not explicitely given but hints of design is provided on page 11 paragraph 2
-            temp_leader = contact_diff / super().lead_range
+            temp_leader = contact_diff / Human.lead_range
             # lead_strength is provided
             # for attraction force of leader we need to revert the direction 
             # such that n_ki points from the agent i to the leader 
-            att_force = super().lead_strength * np.exp(temp_leader) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ik(self, other)) )
+            att_force = Human.lead_strength * np.exp(temp_leader) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ik(self, other)) )
         else:
             att_force = 0
         
@@ -182,8 +184,8 @@ class Human(CommonHuman):
         # if contact_diff >= 0 then two agents crash into each other
         if contact_diff >= 0:
             delta_ji = (other.velocity - self.velocity) * t_ij(self, other)
-            sliding_force = super().sfc * contact_diff * delta_ji * n_ij_val 
-            body_force = super().bfc * contact_diff * n_ij_val 
+            sliding_force = Human.sfc * contact_diff * delta_ji * n_ij_val
+            body_force = Human.bfc * contact_diff * n_ij_val
             crashing_force = sliding_force + body_force
         else:
             crashing_force = 0
@@ -217,14 +219,14 @@ class Human(CommonHuman):
 
         obstacle_point = obstacle.get_closest_point(self)
         contact_diff = self.radii - d_ib(self,obstacle_point)
-        temp = contact_diff / super().soc_range
+        temp = contact_diff / Human.soc_range
         theta_val = theta(contact_diff)
         tib_val = t_ib(self,obstacle_point)
 
         # eq 7 in baseline
-        obt_force =  super().soc_strength * np.exp(temp) + super().bfc * theta_val
+        obt_force =  Human.soc_strength * np.exp(temp) + Human.bfc * theta_val
         obt_force *= n_ib(self,obstacle_point)
-        obt_force -= super().sfc * theta_val * (self.velocity * tib_val) * tib_val
+        obt_force -= Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""
@@ -246,6 +248,7 @@ class Human(CommonHuman):
         """
         Compute all forces acting on this agent, update its velocity and move
         """
+        self.dest = self.nearest_exit().get_center()
         # Compute accelaration term of agent
         self.velocity += self.acceleration_term() / self.mass
  
@@ -253,10 +256,10 @@ class Human(CommonHuman):
         for other in neighbours:
             #If we also define obstacles as agent, then we should first classify the type of agent then we apply human or obs force
             # Compute repulsive effect from other people
-            if isinstance(other,Human):
+            if isinstance(other, Human):
                 self.velocity += self.people_effect(other) / self.mass
             # Compute repulsive effect from obstacles
-            elif isinstance(other,Wall):
+            elif isinstance(other, Obstacle):
                 self.velocity += self.boundary_effect(other) / self.mass
 
         # Compute random noise force

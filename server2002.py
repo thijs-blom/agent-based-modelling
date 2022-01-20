@@ -4,8 +4,11 @@ from mesa.visualization.modules import ChartModule
 
 from model2002 import SocialForce
 from SimpleContinuousModule import SimpleCanvas
-from obstacle2002 import Wall
+from wall import Wall
+from exit import Exit
+
 import numpy as np
+
 
 
 def human_draw(agent):
@@ -18,12 +21,12 @@ def wall_draw(wall):
 canvas = SimpleCanvas(human_draw, wall_draw, 500, 500)
 chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}], 10, 25)
 
-wall1 = Wall(np.array([50, 0]), np.array([50, 200]))
 side_wall1 = Wall(np.array([0, 10]), np.array([0, 500]))
 side_wall2 = Wall(np.array([0, 0]), np.array([500, 0]))
 side_wall3 = Wall(np.array([500, 0]), np.array([500, 500]))
 side_wall4 = Wall(np.array([0, 500]), np.array([500, 500]))
 
+exit = Exit(np.array([0,0]), np.array([0,10]))
 
 model_params = {
     "population": UserSettableParameter(
@@ -43,8 +46,8 @@ model_params = {
         100,
         description="Vision of the agents",
     ),
-    "obstacles": [wall1, side_wall1, side_wall2, side_wall3, side_wall4],
-    "dest": np.array([0, 0])
+    "obstacles": [side_wall1, side_wall2, side_wall3, side_wall4],
+    "exits": [exit]
 }
 
 server = ModularServer(SocialForce, [canvas, chart], "Escape Panic", model_params)
