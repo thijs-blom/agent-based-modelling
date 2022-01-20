@@ -14,6 +14,8 @@ class Human2002(CommonHuman):
         tau: the default relaxation parameter
         min_noise: the min scale of noise added to agent's movement, SAME for each agent
         max_noise: the max scale of noise added to agent's movement, SAME for each agent
+        bfc: body_force_constant
+        sfc: sliding friction force constant
         lead_strength: the leading strength of any leader neighbor agent
         lead_range: the leading force impact range of any leader neighbor agent
     """
@@ -83,7 +85,6 @@ class Human2002(CommonHuman):
 
     def desired_dir(self):
         """Compute the desired direction of the agent"""
-        # TODO: TRY AT SYSTEM FILE -> Redirect 'stuck-at-wall' agents
         # Add the switch of desired_direction when view to the exit is blocked by wall
         dir = self.dest - self.pos
         return dir / np.linalg.norm(dir)
@@ -112,7 +113,7 @@ class Human2002(CommonHuman):
         return (1-n) * self.init_speed + n * self.max_speed
 
 
-    def panic_noise_force(self, panic_index):
+    def panic_noise_effect(self, panic_index):
         """Compute the force of noise scaled by individual's panic level"""
         # scale of noise : eq 10 from baseline paper
         noise_scale = (1-panic_index)*super().min_noise + panic_index * super().max_noise
@@ -153,66 +154,101 @@ class Human2002(CommonHuman):
         def d_ij(agent1, agent2):
             return np.linalg.norm(agent1.pos - agent2.pos)
 
-        # eq 3 in baseline
-        temp = ( r_ij(self,other) - d_ij(self,other) ) / self.soc_range
-        soc_force = self.soc_strength * np.exp(temp) * n_ij(self,other) * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ij(self, other)) )
+        def t_ij(agent1, agent2):
+            """Compute the tangential direction on the closest point on obstacle"""
+            return np.flip(n_ij((agent1, agent2)))
         
+        # define some temperal value for the following computations
+        contact_diff = r_ij(self,other) - d_ij(self, other)
+        n_ij_val = n_ij(self,other)
+
+        # the social replusive (distancing) force: eq 3 in baseline
+        temp = contact_diff / self.soc_range
+        soc_force = self.soc_strength * np.exp(temp) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ij(self, other)) )
+        
+        # the attraction force from leaders
         if other.is_leader:
             # when the other agent is a leader, the agent is attracted
             # TODO: Check if we agree on the formulation of leading force
 
             # att_force is not explicitely given but hints of design is provided on page 11 paragraph 2
-            temp_leader = ( r_ij(self,other) - d_ij(self,other) ) / super().lead_range
+            temp_leader = contact_diff / super().lead_range
             # lead_strength is provided
             # for attraction force of leader we need to revert the direction 
             # such that n_ki points from the agent i to the leader 
-            att_force = super().lead_strength * np.exp(temp_leader) * n_ij(other,self) * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ik(self, other)) )
+            att_force = super().lead_strength * np.exp(temp_leader) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ik(self, other)) )
         else:
             att_force = 0
-
+        
+        # the crashing force: if and only if the distance between two agents is smaller than the sum of their radiis
+        
+        # if contact_diff >= 0 then two agents crash into each other
+        if contact_diff >= 0:
+            delta_ji = (other.velocity - self.velocity) * t_ij(self, other)
+            sliding_force = super().sfc * contact_diff * delta_ji * n_ij_val 
+            body_force = super().bfc * contact_diff * n_ij_val 
+            crashing_force = sliding_force + body_force
+        else:
+            crashing_force = 0
         # the total force cause by the other agent j to self agent i is repulsive + attraction force  
-        return soc_force + att_force
+        return soc_force + att_force + crashing_force
 
-    def obstacle_effect(self, obstacle):
+    def boundary_effect(self, obstacle):
         """Repulsive effect from an obstacle"""
         # TODO: Check if obstacle is a neighbors
-        # TODO: NOT FINISHED!!!
-        # adaptation of eq 4 in baseline
-        def n_ij(agent1, agent2):
-            """The normalized vector pointing from agent 2 to 1"""
-            return (agent1.pos - agent2.pos) / d_ij(agent1, agent2)
 
-        def cos_phi_ij(agent1, agent2):
-            """The cos(angle=phi), 
-                phi is the angle between agent 2 to agent 1's force and the disired direction"""
-            vi = agent1.volecity
-            return - n_ij(agent1, agent2) * vi / np.linalg.norm(vi)
+        def d_ib(agent1,obstacle_point):
+            """Compute the distance from agent i to the effect point of obstacle"""
+            return agent1.pos - obstacle_point
 
-        def r_ij(agent1, agent2):
-            """The sum of radii of both agents"""
-            return agent1.radii + agent2.radii
+        def n_ib(agent1, obstacle_point):
+            """The normalized vector pointing from the effect point of obstacle to agent"""
+            return (agent1.pos - obstacle_point) / d_ib(agent1, obstacle_point)
+        
+        def t_ib(agent1, obstacle_point):
+            """Compute the tangential direction on the closest point on obstacle"""
+            return np.flip(n_ib(agent1, obstacle_point))
+        
+        def theta(z):
+            """The identifier function return z if z >= 0, otherwise 0"""
+            if z >= 0:
+                return z
+            else:
+                return 0
 
-        def d_ij(agent1, agent2):
-            return np.linalg.norm(agent1.pos - agent2.pos)
+        # TODO: There is more efficient way to write the function
 
-        # eq 3 in baseline
-        temp = ( r_ij(self,obstacle) - d_ij(self,obstacle) ) / self.soc_range
-        soc_force = self.soc_strength * np.exp(temp) * n_ij(self,obstacle) * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ij(self, obstacle)) )
+        obstacle_point = obstacle.get_closest_point(self)
+        contact_diff = self.radii - d_ib(self,obstacle_point)
+        temp = contact_diff / self.soc_range
+        theta_val = theta(contact_diff)
+        tib_val = t_ib(self,obstacle_point)
 
-    # def attract_effect(self, other_point):
-    #     """Attractive effect to places/people of interest"""
-    #     raise NotImplementedError
-
-    # def sight_weight(self, f):
-    #     """Compute the weight to account for sight"""
-    #     # Parameters from paper
-    #     c = 0.5
-    #     cosphi = np.cos(np.radians(100))
-
-    #     # Compare direction of the effect with our desired direction
-    #     if np.dot(self.desired_dir(), f) >= np.linalg.norm(f) * cosphi:
-    #         return 1
-    #     else:
-    #         return c
-
+        # eq 7 in baseline
+        obt_force =  self.soc_strength * np.exp(temp) + super().bfc * theta_val
+        obt_force *= n_ib(self,obstacle_point)
+        obt_force -= super().sfc * theta_val * (self.velocity * tib_val) * tib_val
+        
     
+    def comfortness(self):
+        """Compute the comfortness of agent by the time he escape"""
+        # formula is given but it is optional for now
+        pass
+
+    def step(self):
+        """
+        Compute all forces acting on this agent, update its velocity and move
+        """
+        # Compute attractive effect to destination
+
+        # Compute repulsive effect from other people
+
+        # Compute repulsive effect from obstacles
+
+        # Compute attractive effect to points/people of interest
+
+        # Update the position
+
+        # if out of bounds, put at bound
+
+        # Remove once the desitination is reached
