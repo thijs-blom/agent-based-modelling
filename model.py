@@ -28,7 +28,7 @@ class SocialForce(Model):
         speed=1,
         vision=10,
         obstacles=[],
-        dest=np.array([0, 0])
+        exits=[]
     ):
         """
         Create a new Flockers model.
@@ -39,6 +39,7 @@ class SocialForce(Model):
             speed: How fast should the Boids move.
             vision: How far around should each Boid look for its neighbors
             obstacles: A list of obstacles agents must avoid
+            exits: A list of exits where users leave the room
         """
         self.population = population
         self.vision = vision
@@ -46,7 +47,7 @@ class SocialForce(Model):
         self.schedule = RandomActivation(self)
         self.space = ContinuousSpace(width, height, False)
         self.obstacles = obstacles
-        self.dest = dest
+        self.exits = exits
         self.make_agents()
 
         self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
@@ -66,7 +67,6 @@ class SocialForce(Model):
                 i,
                 self,
                 pos,
-                self.dest,
                 self.speed,
                 velocity,
                 self.vision

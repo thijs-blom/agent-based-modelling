@@ -15,7 +15,6 @@ class Human(Agent):
         unique_id,
         model,
         pos,
-        dest,
         speed,
         velocity,
         vision,
@@ -27,18 +26,17 @@ class Human(Agent):
             unique_id: Unique agent identifyer.
             model: Reference to the model object this agent is part of
             pos: Starting position
-            dest: The destination the agent wants to reach
             speed: Distance to move per step.
             velocity: Velocity (unit) vector indicating direction of movement
             vision: Radius to look around for nearby agents.
         """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
-        self.dest = np.array(dest)
         self.speed = speed
         self.max_speed = speed
         self.velocity = velocity
         self.vision = vision
+        self.dest = self.nearest_exit().get_center()
 
         # Default relaxation parameter
         self.tau = 1
@@ -57,6 +55,17 @@ class Human(Agent):
 
         # Return the complete gradient
         return np.array([grad_x, grad_y])
+
+    def nearest_exit(self):
+        """Find the nearest exit relative to this agent"""
+        closest = None
+        smallest_dist = np.inf
+        for exit in self.model.exits:
+            dist = np.linalg.norm(exit.get_center() - self.pos)
+            if dist < smallest_dist:
+                closest = exit
+                smallest_dist = dist
+        return closest
 
     def desired_dir(self):
         """Compute the desired direction of the agent"""
@@ -126,6 +135,7 @@ class Human(Agent):
         """
         Compute all forces acting on this agent, update its velocity and move
         """
+        self.dest = self.nearest_exit().get_center()
         # Compute attractive effect to destination
         self.velocity += self.dest_effect()
 
@@ -163,6 +173,6 @@ class Human(Agent):
             new_pos[1] = 0
         self.model.space.move_agent(self, new_pos)
 
-        # Remove once the desitination is reached
-        if self.pos[0] == self.dest[0] and self.pos[1] == self.dest[1]:
+        exit = self.nearest_exit()
+        if exit.in_exit(self.pos):
             self.model.remove_agent(self)
