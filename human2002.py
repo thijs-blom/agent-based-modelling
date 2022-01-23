@@ -66,8 +66,8 @@ class Human(CommonHuman):
         self.max_speed = max_speed
         self.velocity = velocity
         self.vision = vision
+        # mass is a random value from uniform 0-100 ?
         self.mass = np.random.random() * 100
-        # mass maybe not necessary, I don't completely get how it is used according to force
         self.radii = radii
         self.lam = lam
         self.timestep = current_timestep
@@ -107,7 +107,10 @@ class Human(CommonHuman):
         if self.avg_speed / self.max_speed > 1:
             raise ValueError
 
-        return 1 - self.avg_speed / self.init_speed
+        if self.avg_speed < self.init_speed:
+            return 1 - self.avg_speed / self.init_speed
+        else:
+            return 0
 
     def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
@@ -128,6 +131,9 @@ class Human(CommonHuman):
     def acceleration_term(self):
         """Compute the acceleration Term of agent"""
         return (self.desired_speed() * self.desired_dir() - self.velocity) / Human.tau
+
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
 
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
@@ -193,8 +199,17 @@ class Human(CommonHuman):
             sliding_force = Human.sfc * contact_diff * delta_ji * n_ij_val
             body_force = Human.bfc * contact_diff * n_ij_val
             crashing_force = sliding_force + body_force
+            crashing_strength = np.linalg.norm(crashing_force)
+            deduction_param = 0.0008
+            energy_lost = ( crashing_strength / self.mass ) * deduction_param
+            # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
+            if energy_lost > 0.5:
+               energy_lost = 0.5 
+            self.energy -= energy_lost
+            print(f'crashed with another guy! : energy lost {energy_lost}')
         else:
             crashing_force = 0
+
         # the total force cause by the other agent j to self agent i is repulsive + attraction force  
         return soc_force + att_force + crashing_force
 
@@ -225,14 +240,24 @@ class Human(CommonHuman):
 
         obstacle_point = obstacle.get_closest_point(self)
         contact_diff = self.radii - d_ib(self,obstacle_point)
-        temp = contact_diff / Human.soc_range
+        temp = contact_diff / Human.obs_range
         theta_val = theta(contact_diff)
         tib_val = t_ib(self,obstacle_point)
+        n_ib_val = n_ib(self,obstacle_point)
 
         # eq 7 in baseline
-        obt_force =  Human.soc_strength * np.exp(temp) + Human.bfc * theta_val
-        obt_force *= n_ib(self,obstacle_point)
+        
+        obt_force =  Human.obs_strength * np.exp(temp) + Human.bfc * theta_val
+        obt_force *= n_ib_val
         obt_force -= Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
+
+        crashing_force = Human.bfc * theta_val * n_ib_val - Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
+        crashing_strength = np.linalg.norm(crashing_force)
+        deduction_param = 0.0008
+        energy_lost = theta_val * ( crashing_strength / self.mass ) * deduction_param
+        self.energy -= energy_lost
+        print(f'crashed with the walls! : energy lost {energy_lost}')
+        
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""
@@ -256,17 +281,22 @@ class Human(CommonHuman):
         """
         self.dest = self.nearest_exit().get_center()
         # Compute accelaration term of agent
-        self.velocity += self.acceleration_term() / self.mass
+        self.velocity += self.acceleration_term()
 
-        neighbours = self.model.space.get_neighbors(self.pos, 0.5, False)
+        # neighbours = self.model.space.get_neighbors(self.pos, 0.5, False)
         
-        for other in neighbours:
-            distance = np.sqrt((self.pos[0] - other.pos[0])**2 + (self.pos[1] - other.pos[1])**2)
-            self.energy -= distance / 10
+        # for other in neighbours:
+        #     # resource for this calculation?
+        #     distance = np.sqrt((self.pos[0] - other.pos[0])**2 + (self.pos[1] - other.pos[1])**2)
+        #     self.energy -= distance / 10
+        
         if self.energy <= 0:
-            casualty = Dead(self.pos, self.mass/100)
+            # casualty = Dead(self.pos, self.mass/100)
+            # perhaps makes more sense to let the dead agent obstacle radii be a function of the original radii?
+            casualty = Dead(self.pos, self.radii*5)
             self.model.obstacles.append(casualty)
             self.model.remove_agent(self)
+            print('another died!')
             return
  
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)

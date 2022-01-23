@@ -59,7 +59,7 @@ class SocialForce(Model):
         """
         Create self.population agents, with random positions and starting headings.
         """
-        radii_option = [0.6,0.8,1.0,1.2]
+        radii_option = [0.2,0.25,0.3]
         lam_option =[0.7,0.8,0.9]
         for i in range(self.population):
             x = self.random.random() * self.space.x_max
@@ -68,7 +68,7 @@ class SocialForce(Model):
             lam = np.random.choice(lam_option)
             velocity = np.random.random(2) * 2 - 1
             # dont know what is mass yet
-            mass = 50
+            mass = 80
             radii = random.choice(radii_option)
             current_timestep = 0
             init_speed = 1
