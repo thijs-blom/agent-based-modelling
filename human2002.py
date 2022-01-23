@@ -200,7 +200,7 @@ class Human(CommonHuman):
             body_force = Human.bfc * contact_diff * n_ij_val
             crashing_force = sliding_force + body_force
             crashing_strength = np.linalg.norm(crashing_force)
-            deduction_param = 0.0008
+            deduction_param = 0.0002
             energy_lost = ( crashing_strength / self.mass ) * deduction_param
             # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
             if energy_lost > 0.5:
@@ -253,7 +253,7 @@ class Human(CommonHuman):
 
         crashing_force = Human.bfc * theta_val * n_ib_val - Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
         crashing_strength = np.linalg.norm(crashing_force)
-        deduction_param = 0.0008
+        deduction_param = 0.0002
         energy_lost = theta_val * ( crashing_strength / self.mass ) * deduction_param
         self.energy -= energy_lost
         print(f'crashed with the walls! : energy lost {energy_lost}')

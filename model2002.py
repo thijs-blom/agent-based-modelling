@@ -51,10 +51,47 @@ class SocialForce(Model):
         self.max_speed = max_speed
         self.make_agents()
 
-        self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
+        # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
+
+        # NOT WORKING YET, NEED TO COUNT THE INCREASE IN OBSTACLES
+        # "Caused Deaths": lambda m: self.population - self.schedule.get_agent_count(),
+
+        self.datacollector = DataCollector(
+            model_reporters={
+            "Remained Human": lambda m: self.schedule.get_agent_count(),
+            "Caused Deaths": lambda m: 1,
+            "Average Energy": lambda m: self.count_energy(m) / self.population,
+            "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count()
+            })
+        
+          # 'Amount of death': self.caused_death(),
         self.running = True
         self.datacollector.collect(self)
+    
+    
+    @staticmethod
+    def count_energy(model):
+        """
+        Helper method to count trees in a given condition in a given model.
+        """
+        count = 0
+        for human in model.schedule.agents:
+            if human.energy >= 0:
+                count += human.energy
+        return count
 
+    @staticmethod
+    def count_speed(model):
+        """
+        Helper method to count trees in a given condition in a given model.
+        """
+        count = 0
+        for human in model.schedule.agents:
+            speed = np.linalg.norm(human.velocity)
+            if speed >= 0:
+                count += speed
+        return count
+    
     def make_agents(self):
         """
         Create self.population agents, with random positions and starting headings.

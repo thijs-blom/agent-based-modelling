@@ -21,7 +21,10 @@ def dead_draw(dead):
     return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Black"}
 
 canvas = SimpleCanvas(human_draw, wall_draw, dead_draw, 500, 500)
-chart =  ChartModule([{"Label": "Human", "Color": "#AA0000"}], 10, 25)
+chart0 =  ChartModule([{"Label": "Remained Human", "Color": "#AA0000"}], 10, 25)
+chart1 =  ChartModule([{"Label": "Caused Deaths", "Color": "#AA0000"}], 10, 25)
+chart2 =  ChartModule([{"Label": "Average Energy", "Color": "#AA0000"}], 10, 25)
+chart3 =  ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
 
 width = 100
 height = 100
@@ -60,6 +63,6 @@ model_params = {
     "exits": [exit1, exit2]
 }
 
-server = ModularServer(SocialForce, [canvas, chart], "Escape Panic", model_params)
+server = ModularServer(SocialForce, [canvas, chart0,chart2,chart3], "Escape Panic", model_params)
 
 server.launch()
