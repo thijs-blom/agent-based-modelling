@@ -78,7 +78,6 @@ class Human(CommonHuman):
         self.is_leader = is_leader
         self.energy = 1
         self.strategy = strategy
-
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
 
@@ -87,7 +86,7 @@ class Human(CommonHuman):
     def desired_dir(self):
         """ Compute the desired direction of the agent
             When strategy is 'nearest exit', the desired direction is the closest exit;
-            When strategy is 'follow the crowd', the desired direction is w1*closest exit + w2*neighbor_direction;
+            When strategy is 'follow the crowd', the desired direction is closest exit (80% likihood) or neighbor_direction (20% likelihood);
             When strategy is 'least crowded exit', the desired direction is the least crowded exit.
         """
         if self.strategy == 'nearest exit':
@@ -98,22 +97,37 @@ class Human(CommonHuman):
 
         elif self.strategy == 'follow the crowd':
             self.dest = self.nearest_exit().get_center()
-            neighbor_dir = self.neighbor_direction()
-            neighbor_dir /= np.linalg.norm(neighbor_dir)
-            dest_dir = (self.dest - self.pos)
+            dest_dir = self.dest - self.pos
             dest_dir /= np.linalg.norm(dest_dir)
-            
-            w1 = 0.6
-            w2 = 1-w1
-            dir = w1 * dest_dir + w2 * neighbor_dir
+            neighbor_dir = self.neighbor_direction(dest_dir)
+            neighbor_dir /= np.linalg.norm(neighbor_dir)
+
+            # if exit is within 15 meters, the destination is the nearest exit
+            # otherwise the destination is a mixed a nearest exit and the neighbors
+            if np.linalg.norm(self.pos - self.dest) > 50:
+                rand = np.random.random()
+                print(rand)
+                if rand > 0.8:
+                    dir = neighbor_dir
+                else:
+                    dir = dest_dir
+            else:
+                dir = dest_dir
+
             dir /= np.linalg.norm(dir)
 
         elif self.strategy == 'least crowded exit':
             self.dest = self.least_crowded_exit().get_center()
             dir = self.dest - self.pos
             dir /= np.linalg.norm(dir)
-
+        
         return dir
+        
+    # def desired_dir(self):
+    #     """Compute the desired direction of the agent"""
+        
+    #     dir = self.dest - self.pos
+    #     return dir / np.linalg.norm(dir
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""
@@ -127,10 +141,29 @@ class Human(CommonHuman):
         return closest 
 
     def least_crowded_exit(self):
-        pass
+        # define exit busyness as a dictionary
+        busyness = {}
+        for i in range(len(self.model.exits)):
+            exit = self.model.exits[i]
+            # exit_name = f'exit{i}'
+            busyness[i] = len(self.model.space.get_neighbors(exit.get_center(), 10, False))
+        nb_exit = min(busyness, key=busyness.get)
+        return self.model.exits[nb_exit]
 
-    def neighbor_direction(self):
-        pass
+    def neighbor_direction(self,origin_dir):
+        # find the neighbors' direction
+        neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
+        # original direction is the same as the nearest exit
+        sum_of_direction = origin_dir
+
+        if len(neighbours) >0 :
+            for other in neighbours:
+                v = other.velocity
+                sum_of_direction += v / np.linalg.norm(v)
+                sum_of_direction /= np.linalg.norm(sum_of_direction)
+        
+        return sum_of_direction
+    
     
     def panic_index(self):
         """Compute the panic index of agent using average speed"""
@@ -181,7 +214,6 @@ class Human(CommonHuman):
 
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
-        # TODO: Check if other is only the neighbors
         
         # eq 4 in baseline
         def n_ij(agent1, agent2):
