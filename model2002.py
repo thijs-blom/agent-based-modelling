@@ -12,8 +12,8 @@ from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-from human2002 import Human
-
+from base_human import Human
+#from human2002 import Human
 
 class SocialForce(Model):
     """
@@ -62,7 +62,7 @@ class SocialForce(Model):
             model_reporters={
             "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
             "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-            "Average Energy": lambda m: self.count_energy(m) / self.population,
+            #"Average Energy": lambda m: self.count_energy(m) / self.population,
             "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
         
