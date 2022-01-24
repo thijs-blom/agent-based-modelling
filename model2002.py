@@ -59,8 +59,8 @@ class SocialForce(Model):
 
         self.datacollector = DataCollector(
             model_reporters={
-            "Remained Human": lambda m: self.schedule.get_agent_count(),
-            "Caused Deaths": lambda m: len(self.obstacles) - self.init_amount_obstacles,
+            "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
+            "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
             "Average Energy": lambda m: self.count_energy(m) / self.population,
             "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
@@ -99,6 +99,7 @@ class SocialForce(Model):
         """
         radii_option = [0.2,0.25,0.3]
         lam_option =[0.7,0.8,0.9]
+        strategy_option = ['nearest exit', 'follow the crowd', 'least crowded exit']
         for i in range(self.population):
             x = self.random.random() * self.space.x_max
             y = self.random.random() * self.space.y_max
@@ -109,7 +110,8 @@ class SocialForce(Model):
             mass = 80
             radii = random.choice(radii_option)
             current_timestep = 0
-            init_speed = 1
+            init_speed = np.random.random()
+            strategy = np.random.choice(strategy_option)
             human = Human(
                 i,
                 self,
@@ -124,7 +126,11 @@ class SocialForce(Model):
                 init_speed,
                 init_speed,
                 False,
+<<<<<<< HEAD
                 'nearest exit'
+=======
+                'nearest exit',
+>>>>>>> e7e11aafeb66326c3f6655cd53205804ea4b97e9
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)

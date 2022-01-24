@@ -33,7 +33,6 @@ wall1 = Wall(np.array([50, 0]), np.array([50, 200]))
 side_wall1 = Wall(np.array([0, 2]), np.array([0, height]))
 side_wall2 = Wall(np.array([0, 0]), np.array([width, 0]))
 side_wall3 = Wall(np.array([width, 0]), np.array([width, height]))
-#side_wall4 = Wall(np.array([0, height]), np.array([width, height]))
 side_wall4 = Wall(np.array([0, height]), np.array([48, height]))
 side_wall5 = Wall(np.array([50, height]), np.array([width, height]))
 
