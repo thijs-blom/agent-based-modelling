@@ -100,6 +100,7 @@ class SocialForce(Model):
         """
         radii_option = [0.2,0.25,0.3]
         lam_option =[0.7,0.8,0.9]
+        strategy_option = ['nearest exit', 'follow the crowd', 'least crowded exit']
         for i in range(self.population):
             x = self.random.random() * self.space.x_max
             y = self.random.random() * self.space.y_max
@@ -110,7 +111,8 @@ class SocialForce(Model):
             mass = 80
             radii = random.choice(radii_option)
             current_timestep = 0
-            init_speed = 1
+            init_speed = 1 #np.random.random()
+            strategy = np.random.choice(strategy_option)
             human = Human(
                 i,
                 self,
@@ -124,7 +126,8 @@ class SocialForce(Model):
                 current_timestep,
                 init_speed,
                 init_speed,
-                False
+                False,
+                'nearest exit',
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)

@@ -40,7 +40,7 @@ class Human(CommonHuman):
         avg_speed,
         init_speed,
         is_leader,
-        stratgy,
+        strategy,
     ):
         """
         Create a new Human agent
@@ -77,6 +77,7 @@ class Human(CommonHuman):
         self.init_speed = init_speed
         self.is_leader = is_leader
         self.energy = 1
+        self.strategy = strategy
 
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
@@ -95,7 +96,7 @@ class Human(CommonHuman):
             self.dest = self.nearest_exit().get_center()
             dir = self.dest - self.pos
             dir /= np.linalg.norm(dir)
-        
+
         elif self.strategy == 'follow the crowd':
             self.dest = self.nearest_exit().get_center()
             neighbor_dir = self.neighbor_direction()
@@ -107,17 +108,13 @@ class Human(CommonHuman):
             w2 = 1-w1
             dir = w1 * dest_dir + w2 * neighbor_dir
             dir /= np.linalg.norm(dir)
-        
+
         elif self.strategy == 'least crowded exit':
             self.dest = self.least_crowded_exit().get_center()
             dir = self.dest - self.pos
             dir /= np.linalg.norm(dir)
 
-    # def desired_dir(self):
-    #     """Compute the desired direction of the agent"""
-        
-    #     dir = self.dest - self.pos
-    #     return dir / np.linalg.norm(dir)
+        return dir
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""

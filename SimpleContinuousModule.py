@@ -42,17 +42,16 @@ class SimpleCanvas(VisualizationElement):
                 portrayal["x"] = x
                 portrayal["y"] = y
                 space_state.append(portrayal)
-                break
-
-            portrayal = self.wall_portrayal(obj)
-                
-            x1 = obj.p1[0] * (self.canvas_width / model.space.x_max)
-            y1 = obj.p1[1] * (self.canvas_height / model.space.y_max)
-            x2 = obj.p2[0] * (self.canvas_width / model.space.x_max)
-            y2 = obj.p2[1] * (self.canvas_height / model.space.y_max)
-                
-            portrayal["pos1"] = [x1, y1]
-            portrayal["pos2"] = [x2, y2]
-            space_state.append(portrayal)
+            else:
+                portrayal = self.wall_portrayal(obj)
+                    
+                x1 = obj.p1[0] * (self.canvas_width / model.space.x_max)
+                y1 = obj.p1[1] * (self.canvas_height / model.space.y_max)
+                x2 = obj.p2[0] * (self.canvas_width / model.space.x_max)
+                y2 = obj.p2[1] * (self.canvas_height / model.space.y_max)
+                    
+                portrayal["pos1"] = [x1, y1]
+                portrayal["pos2"] = [x2, y2]
+                space_state.append(portrayal)
 
         return space_state
