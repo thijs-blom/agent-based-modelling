@@ -93,7 +93,7 @@ class SocialForce(Model):
             if speed >= 0:
                 count += speed
         return count
-    
+
     def make_agents(self):
         """
         Create self.population agents, with random positions and starting headings.
