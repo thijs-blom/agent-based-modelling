@@ -122,12 +122,6 @@ class Human(CommonHuman):
             dir /= np.linalg.norm(dir)
         
         return dir
-        
-    # def desired_dir(self):
-    #     """Compute the desired direction of the agent"""
-        
-    #     dir = self.dest - self.pos
-    #     return dir / np.linalg.norm(dir
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""
@@ -166,32 +160,29 @@ class Human(CommonHuman):
     
     
     def panic_index(self):
-        """Compute the panic index of agent using average speed"""
-        # eq 11 of baseline paper
-        if self.timestep > 1:
-            self.avg_speed = (self.avg_speed * (self.timestep - 1) + self.speed) / self.timestep
-            #panic = 0
-            #panic = 1 - self.avg_speed / self.init_speed
-            #self.avg_speed = (1 - panic) * self.init_speed + panic * self.max_speed
-        else:
-            # if timestep = 0, then the avg_velocity is just the first velocity
-            #panic = 0
-            self.avg_speed = self.init_speed
-            # so the individual's panic_index is initialized as 0 at the begining
-            # TODO: Is initial velocity the max_speed ???
-        
+        """Compute the panic index of agent using average speed"""        
+        # Compute average speed of the neighbourhood
+        neighbourhood_speed = 0
+        neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
+        if len(neighbours) > 0:
+            for neighbour in neighbours:
+                neighbourhood_speed += neighbour.avg_speed
+            neighbourhood_speed /= len(neighbours)
+
         # testing testing
-        if self.avg_speed / self.max_speed > 1:
+        if neighbourhood_speed / self.max_speed > 1:
             raise ValueError
 
-        if self.avg_speed < self.init_speed:
-            return 1 - self.avg_speed / self.init_speed
+        # Return the panic index (eq 12, but then the divisor and divided flipped)
+        if neighbourhood_speed > self.init_speed:
+            return 1 - self.init_speed / neighbourhood_speed
         else:
             return 0
 
+
     def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
-        # eq 12 of baseline paper
+        # eq 11 of baseline paper
         n = self.panic_index()
         return (1-n) * self.init_speed + n * self.max_speed
 
