@@ -81,6 +81,7 @@ class Human(CommonHuman):
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
 
+        
         self.tau = 0.5
 
     def desired_dir(self):
@@ -186,7 +187,6 @@ class Human(CommonHuman):
         n = self.panic_index()
         return (1-n) * self.init_speed + n * self.max_speed
 
-
     def panic_noise_effect(self):
         """Compute the force of noise scaled by individual's panic level"""
         # scale of noise : eq 10 from baseline paper
@@ -200,9 +200,6 @@ class Human(CommonHuman):
         """Compute the acceleration Term of agent"""
         return (self.desired_speed() * self.desired_dir() - self.velocity) / Human.tau
 
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-x))
-
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
         
@@ -213,13 +210,13 @@ class Human(CommonHuman):
 
         def cos_phi_ij(agent1, agent2):
             """The cos(angle=phi), 
-                phi is the angle between agent 2 to agent 1's force and the disired direction"""
+                phi is the angle between agent 2 to agent 1's force and the desired direction"""
             vi = agent1.velocity
             return - n_ij(agent1, agent2) * vi / np.linalg.norm(vi)
 
         def cos_phi_ik(agent, leader):
             """The cos(angle=phi), 
-                phi is the angle between agent 2 to agent 1's force and the disired direction"""
+                phi is the angle between agent 2 to agent 1's force and the desired direction"""
             vi = agent.velocity
             # for attraction force of leader we need to revert the direction 
             # such that n_ki points from the agent i to the leader
@@ -230,6 +227,7 @@ class Human(CommonHuman):
             return agent1.radii + agent2.radii
 
         def d_ij(agent1, agent2):
+            """The distance between two agents."""
             return np.linalg.norm(agent1.pos - agent2.pos)
 
         def t_ij(agent1, agent2):
@@ -253,7 +251,7 @@ class Human(CommonHuman):
             temp_leader = contact_diff / Human.lead_range
             # lead_strength is provided
             # for attraction force of leader we need to revert the direction 
-            # such that n_ki points from the agent i to the leader 
+            # such that n_ki points from the agent i to the leader
             att_force = Human.lead_strength * np.exp(temp_leader) * n_ij_val * (self.lam + (1-self.lam)* 0.5 * (1+cos_phi_ik(self, other)) )
         else:
             att_force = 0
@@ -313,7 +311,6 @@ class Human(CommonHuman):
         n_ib_val = n_ib(self,obstacle_point)
 
         # eq 7 in baseline
-        
         obt_force =  Human.obs_strength * np.exp(temp) + Human.bfc * theta_val
         obt_force *= n_ib_val
         obt_force -= Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
@@ -324,7 +321,6 @@ class Human(CommonHuman):
         energy_lost = theta_val * ( crashing_strength / self.mass ) * deduction_param
         self.energy -= energy_lost
         print(f'crashed with the walls! : energy lost {energy_lost}')
-           
     
     def comfortness(self):
         """Compute the comfortness of agent by the time he escape"""
@@ -333,7 +329,7 @@ class Human(CommonHuman):
 
     def step(self):
         """
-        Compute all forces acting on this agent, update its velocity and move
+        Compute all forces acting on this agent, update its velocity and move.
         """
         self.dest = self.nearest_exit().get_center()
         # Compute accelaration term of agent
