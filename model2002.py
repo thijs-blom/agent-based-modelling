@@ -60,8 +60,8 @@ class SocialForce(Model):
 
         self.datacollector = DataCollector(
             model_reporters={
-            "Remained Human": lambda m: self.schedule.get_agent_count(),
-            "Caused Deaths": lambda m: len(self.obstacles) - self.init_amount_obstacles,
+            "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
+            "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
             "Average Energy": lambda m: self.count_energy(m) / self.population,
             "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
@@ -111,7 +111,7 @@ class SocialForce(Model):
             mass = 80
             radii = random.choice(radii_option)
             current_timestep = 0
-            init_speed = 1 #np.random.random()
+            init_speed = np.random.random()
             strategy = np.random.choice(strategy_option)
             human = Human(
                 i,
