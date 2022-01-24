@@ -56,6 +56,7 @@ class SocialForce(Model):
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 
         # NOT WORKING YET, NEED TO COUNT THE INCREASE IN OBSTACLES
+        # "Caused Deaths": lambda m: len(self.obstacles) - self.init_amount_obstacles,
 
         self.datacollector = DataCollector(
             model_reporters={
@@ -126,11 +127,7 @@ class SocialForce(Model):
                 init_speed,
                 init_speed,
                 False,
-<<<<<<< HEAD
                 'nearest exit'
-=======
-                'nearest exit',
->>>>>>> e7e11aafeb66326c3f6655cd53205804ea4b97e9
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)

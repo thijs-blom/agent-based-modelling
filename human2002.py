@@ -78,14 +78,10 @@ class Human(CommonHuman):
         self.is_leader = is_leader
         self.energy = 1
         self.strategy = strategy
-<<<<<<< HEAD
-=======
 
->>>>>>> e7e11aafeb66326c3f6655cd53205804ea4b97e9
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
 
-        
         self.tau = 0.5
 
     def desired_dir(self):
@@ -116,18 +112,8 @@ class Human(CommonHuman):
             self.dest = self.least_crowded_exit().get_center()
             dir = self.dest - self.pos
             dir /= np.linalg.norm(dir)
-<<<<<<< HEAD
-        return dir
-        
-    # def desired_dir(self):
-    #     """Compute the desired direction of the agent"""
-        
-    #     dir = self.dest - self.pos
-    #     return dir / np.linalg.norm(dir)
-=======
 
         return dir
->>>>>>> e7e11aafeb66326c3f6655cd53205804ea4b97e9
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""
