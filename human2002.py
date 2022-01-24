@@ -78,10 +78,6 @@ class Human(CommonHuman):
         self.is_leader = is_leader
         self.energy = 1
         self.strategy = strategy
-<<<<<<< HEAD
-=======
-
->>>>>>> e7e11aafeb66326c3f6655cd53205804ea4b97e9
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
 
@@ -116,7 +112,6 @@ class Human(CommonHuman):
             self.dest = self.least_crowded_exit().get_center()
             dir = self.dest - self.pos
             dir /= np.linalg.norm(dir)
-<<<<<<< HEAD
         return dir
         
     # def desired_dir(self):
@@ -124,10 +119,7 @@ class Human(CommonHuman):
         
     #     dir = self.dest - self.pos
     #     return dir / np.linalg.norm(dir)
-=======
 
-        return dir
->>>>>>> e7e11aafeb66326c3f6655cd53205804ea4b97e9
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""
@@ -190,8 +182,8 @@ class Human(CommonHuman):
         """Compute the acceleration Term of agent"""
         return (self.desired_speed() * self.desired_dir() - self.velocity) / Human.tau
 
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-x))
+    # def sigmoid(x):
+    #     return 1 / (1 + np.exp(-x))
 
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
@@ -261,8 +253,8 @@ class Human(CommonHuman):
             deduction_param = 0.0002
             energy_lost = ( crashing_strength / self.mass ) * deduction_param
             # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
-            if energy_lost > 0.5:
-               energy_lost = 0.5 
+            if energy_lost > 0.25:
+               energy_lost = 0.25 
             self.energy -= energy_lost
             # print(f'crashed with another guy! : energy lost {energy_lost}')
         else:
@@ -367,12 +359,12 @@ class Human(CommonHuman):
         
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:
-            new_pos[0] = self.model.space.width - 0.1
+            new_pos[0] = self.model.space.width - 0.01
         elif new_pos[0] < 0:
             new_pos[0] = 0
 
         if new_pos[1] > self.model.space.height:
-            new_pos[1] = self.model.space.height -0.1
+            new_pos[1] = self.model.space.height -0.01
         elif new_pos[1] < 0:
             new_pos[1] = 0
         self.model.space.move_agent(self, new_pos)

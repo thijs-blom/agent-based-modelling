@@ -126,11 +126,7 @@ class SocialForce(Model):
                 init_speed,
                 init_speed,
                 False,
-<<<<<<< HEAD
-                'nearest exit'
-=======
                 'nearest exit',
->>>>>>> e7e11aafeb66326c3f6655cd53205804ea4b97e9
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)
