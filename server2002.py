@@ -37,6 +37,8 @@ side_wall3 = Wall(np.array([width, 0]), np.array([width, height]))
 side_wall4 = Wall(np.array([0, height]), np.array([48, height]))
 side_wall5 = Wall(np.array([50, height]), np.array([width, height]))
 
+init_obstacles = [side_wall1, side_wall2, side_wall3, side_wall4, side_wall5]
+
 exit1 = Exit(np.array([0,0]), np.array([0,2]))
 exit2 = Exit(np.array([48,100]), np.array([50,100]))
 
@@ -56,13 +58,14 @@ model_params = {
         "Vision",
         1,
         1,
-        100,
+        10,
         description="Vision of the agents",
     ),
-    "obstacles": [side_wall1, side_wall2, side_wall3, side_wall4, side_wall5],
-    "exits": [exit1, exit2]
+    "obstacles": init_obstacles,
+    "exits": [exit1, exit2],
+    "init_amount_obstacles": len(init_obstacles)
 }
 
-server = ModularServer(SocialForce, [canvas, chart0,chart2,chart3], "Escape Panic", model_params)
+server = ModularServer(SocialForce, [canvas, chart0, chart1, chart2, chart3], "Escape Panic", model_params)
 
 server.launch()

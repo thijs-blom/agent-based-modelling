@@ -25,10 +25,11 @@ class SocialForce(Model):
         population=100,
         width=100,
         height=100,
-        max_speed=2,
+        max_speed=5,
         vision=10,
         obstacles=[],
-        exits=[]
+        exits=[],
+        init_amount_obstacles = 5,
     ):
         """
         Create a new Flockers model.
@@ -50,18 +51,19 @@ class SocialForce(Model):
         self.exits = exits
         self.max_speed = max_speed
         self.make_agents()
+        self.init_amount_obstacles = init_amount_obstacles
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 
         # NOT WORKING YET, NEED TO COUNT THE INCREASE IN OBSTACLES
-        # "Caused Deaths": lambda m: self.population - self.schedule.get_agent_count(),
+        # "Caused Deaths": lambda m: len(self.obstacles) - self.init_amount_obstacles,
 
         self.datacollector = DataCollector(
             model_reporters={
             "Remained Human": lambda m: self.schedule.get_agent_count(),
-            "Caused Deaths": lambda m: 1,
+            "Caused Deaths": lambda m: len(self.obstacles) - self.init_amount_obstacles,
             "Average Energy": lambda m: self.count_energy(m) / self.population,
-            "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count()
+            "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
         
           # 'Amount of death': self.caused_death(),

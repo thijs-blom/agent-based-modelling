@@ -40,6 +40,7 @@ class Human(CommonHuman):
         avg_speed,
         init_speed,
         is_leader,
+        stratgy,
     ):
         """
         Create a new Human agent
@@ -67,7 +68,8 @@ class Human(CommonHuman):
         self.velocity = velocity
         self.vision = vision
         # mass is a random value from uniform 0-100 ?
-        self.mass = np.random.random() * 100
+        # self.mass = np.random.random() * 100
+        self.mass = mass
         self.radii = radii
         self.lam = lam
         self.timestep = current_timestep
@@ -83,11 +85,57 @@ class Human(CommonHuman):
         self.tau = 0.5
 
     def desired_dir(self):
-        """Compute the desired direction of the agent"""
-        # Add the switch of desired_direction when view to the exit is blocked by wall
-        dir = self.dest - self.pos
-        return dir / np.linalg.norm(dir)
+        """ Compute the desired direction of the agent
+            When strategy is 'nearest exit', the desired direction is the closest exit;
+            When strategy is 'follow the crowd', the desired direction is w1*closest exit + w2*neighbor_direction;
+            When strategy is 'least crowded exit', the desired direction is the least crowded exit.
+        """
+        if self.strategy == 'nearest exit':
+            # Go to the (center of) the nearest exit
+            self.dest = self.nearest_exit().get_center()
+            dir = self.dest - self.pos
+            dir /= np.linalg.norm(dir)
+        
+        elif self.strategy == 'follow the crowd':
+            self.dest = self.nearest_exit().get_center()
+            neighbor_dir = self.neighbor_direction()
+            neighbor_dir /= np.linalg.norm(neighbor_dir)
+            dest_dir = (self.dest - self.pos)
+            dest_dir /= np.linalg.norm(dest_dir)
+            
+            w1 = 0.6
+            w2 = 1-w1
+            dir = w1 * dest_dir + w2 * neighbor_dir
+            dir /= np.linalg.norm(dir)
+        
+        elif self.strategy == 'least crowded exit':
+            self.dest = self.least_crowded_exit().get_center()
+            dir = self.dest - self.pos
+            dir /= np.linalg.norm(dir)
 
+    # def desired_dir(self):
+    #     """Compute the desired direction of the agent"""
+        
+    #     dir = self.dest - self.pos
+    #     return dir / np.linalg.norm(dir)
+
+    def nearest_exit(self):
+        """Find the nearest exit relative to this agent"""
+        closest = None
+        smallest_dist = np.inf
+        for exit in self.model.exits:
+            dist = np.linalg.norm(exit.get_center() - self.pos)
+            if dist < smallest_dist:
+                closest = exit
+                smallest_dist = dist
+        return closest 
+
+    def least_crowded_exit(self):
+        pass
+
+    def neighbor_direction(self):
+        pass
+    
     def panic_index(self):
         """Compute the panic index of agent using average speed"""
         # eq 11 of baseline paper
@@ -206,7 +254,7 @@ class Human(CommonHuman):
             if energy_lost > 0.5:
                energy_lost = 0.5 
             self.energy -= energy_lost
-            print(f'crashed with another guy! : energy lost {energy_lost}')
+            # print(f'crashed with another guy! : energy lost {energy_lost}')
         else:
             crashing_force = 0
 
@@ -257,18 +305,7 @@ class Human(CommonHuman):
         energy_lost = theta_val * ( crashing_strength / self.mass ) * deduction_param
         self.energy -= energy_lost
         print(f'crashed with the walls! : energy lost {energy_lost}')
-        
-
-    def nearest_exit(self):
-        """Find the nearest exit relative to this agent"""
-        closest = None
-        smallest_dist = np.inf
-        for exit in self.model.exits:
-            dist = np.linalg.norm(exit.get_center() - self.pos)
-            if dist < smallest_dist:
-                closest = exit
-                smallest_dist = dist
-        return closest    
+           
     
     def comfortness(self):
         """Compute the comfortness of agent by the time he escape"""

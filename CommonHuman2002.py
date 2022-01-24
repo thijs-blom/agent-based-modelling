@@ -61,10 +61,10 @@ class CommonHuman(Agent):
     max_noise = 1
     lead_strength = 2000
     lead_range = 5
-    soc_strength = 2000
+    soc_strength = 1000
     soc_range = 0.08
-    bfc = 12000
-    sfc = 24000
-    obs_strength = 2000
+    bfc = 819
+    sfc = 510
+    obs_strength = 1000
     obs_range = 0.1
     
