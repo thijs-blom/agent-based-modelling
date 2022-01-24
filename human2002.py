@@ -371,14 +371,14 @@ class Human(CommonHuman):
         
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:
-            new_pos[0] = self.model.space.width - 0.1
+            new_pos[0] = self.model.space.width - self.radii
         elif new_pos[0] < 0:
-            new_pos[0] = 0
+            new_pos[0] = 0 + self.radii
 
         if new_pos[1] > self.model.space.height:
-            new_pos[1] = self.model.space.height -0.1
+            new_pos[1] = self.model.space.height - self.radii
         elif new_pos[1] < 0:
-            new_pos[1] = 0
+            new_pos[1] = 0 + self.radii
         self.model.space.move_agent(self, new_pos)
 
         self.timestep += 1

@@ -104,7 +104,7 @@ class SocialForce(Model):
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
             lam = np.random.uniform(0.7,0.95)
-            velocity = np.random.random(2) * 2 - 1
+            velocity = (np.random.random(2)-0.5)*0.0001 
             # dont know what is mass yet
             mass = 80
             radii = np.random.uniform(0.37,0.55)
