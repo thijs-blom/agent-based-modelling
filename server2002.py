@@ -19,7 +19,7 @@ def dead_draw(dead):
     return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Black"}
 
 canvas = SimpleCanvas(human_draw, wall_draw, dead_draw, 500, 500)
-<<<<<<< HEAD
+
 chart0 =  ChartModule([{"Label": "Number of Humans in Environment", "Color": "#AA0000"}], 10, 25)
 chart1 =  ChartModule([{"Label": "Number of Casualties", "Color": "#AA0000"}], 10, 25)
 chart2 =  ChartModule([{"Label": "Average Energy", "Color": "#AA0000"}], 10, 25)

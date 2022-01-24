@@ -106,7 +106,6 @@ class Human(CommonHuman):
             # otherwise the destination is a mixed a nearest exit and the neighbors
             if np.linalg.norm(self.pos - self.dest) > 50:
                 rand = np.random.random()
-                print(rand)
                 if rand > 0.8:
                     dir = neighbor_dir
                 else:
