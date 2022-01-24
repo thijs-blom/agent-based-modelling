@@ -87,7 +87,7 @@ class Human(CommonHuman):
     def desired_dir(self):
         """ Compute the desired direction of the agent
             When strategy is 'nearest exit', the desired direction is the closest exit;
-            When strategy is 'follow the crowd', the desired direction is w1*closest exit + w2*neighbor_direction;
+            When strategy is 'follow the crowd', the desired direction is closest exit (80% likihood) or neighbor_direction (20% likelihood);
             When strategy is 'least crowded exit', the desired direction is the least crowded exit.
         """
         if self.strategy == 'nearest exit':
@@ -98,28 +98,37 @@ class Human(CommonHuman):
 
         elif self.strategy == 'follow the crowd':
             self.dest = self.nearest_exit().get_center()
-            neighbor_dir = self.neighbor_direction()
-            neighbor_dir /= np.linalg.norm(neighbor_dir)
-            dest_dir = (self.dest - self.pos)
+            dest_dir = self.dest - self.pos
             dest_dir /= np.linalg.norm(dest_dir)
-            
-            w1 = 0.6
-            w2 = 1-w1
-            dir = w1 * dest_dir + w2 * neighbor_dir
+            neighbor_dir = self.neighbor_direction(dest_dir)
+            neighbor_dir /= np.linalg.norm(neighbor_dir)
+
+            # if exit is within 15 meters, the destination is the nearest exit
+            # otherwise the destination is a mixed a nearest exit and the neighbors
+            if np.linalg.norm(self.pos - self.dest) > 50:
+                rand = np.random.random()
+                print(rand)
+                if rand > 0.8:
+                    dir = neighbor_dir
+                else:
+                    dir = dest_dir
+            else:
+                dir = dest_dir
+
             dir /= np.linalg.norm(dir)
 
         elif self.strategy == 'least crowded exit':
             self.dest = self.least_crowded_exit().get_center()
             dir = self.dest - self.pos
             dir /= np.linalg.norm(dir)
+        
         return dir
         
     # def desired_dir(self):
     #     """Compute the desired direction of the agent"""
         
     #     dir = self.dest - self.pos
-    #     return dir / np.linalg.norm(dir)
-
+    #     return dir / np.linalg.norm(dir
 
     def nearest_exit(self):
         """Find the nearest exit relative to this agent"""
@@ -133,10 +142,29 @@ class Human(CommonHuman):
         return closest 
 
     def least_crowded_exit(self):
-        pass
+        # define exit busyness as a dictionary
+        busyness = {}
+        for i in range(len(self.model.exits)):
+            exit = self.model.exits[i]
+            # exit_name = f'exit{i}'
+            busyness[i] = len(self.model.space.get_neighbors(exit.get_center(), 10, False))
+        nb_exit = min(busyness, key=busyness.get)
+        return self.model.exits[nb_exit]
 
-    def neighbor_direction(self):
-        pass
+    def neighbor_direction(self,origin_dir):
+        # find the neighbors' direction
+        neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
+        # original direction is the same as the nearest exit
+        sum_of_direction = origin_dir
+
+        if len(neighbours) >0 :
+            for other in neighbours:
+                v = other.velocity
+                sum_of_direction += v / np.linalg.norm(v)
+                sum_of_direction /= np.linalg.norm(sum_of_direction)
+        
+        return sum_of_direction
+    
     
     def panic_index(self):
         """Compute the panic index of agent using average speed"""
@@ -182,12 +210,11 @@ class Human(CommonHuman):
         """Compute the acceleration Term of agent"""
         return (self.desired_speed() * self.desired_dir() - self.velocity) / Human.tau
 
-    # def sigmoid(x):
-    #     return 1 / (1 + np.exp(-x))
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
 
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
-        # TODO: Check if other is only the neighbors
         
         # eq 4 in baseline
         def n_ij(agent1, agent2):
@@ -253,8 +280,8 @@ class Human(CommonHuman):
             deduction_param = 0.0002
             energy_lost = ( crashing_strength / self.mass ) * deduction_param
             # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
-            if energy_lost > 0.25:
-               energy_lost = 0.25 
+            if energy_lost > 0.5:
+               energy_lost = 0.5 
             self.energy -= energy_lost
             # print(f'crashed with another guy! : energy lost {energy_lost}')
         else:
@@ -359,12 +386,12 @@ class Human(CommonHuman):
         
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:
-            new_pos[0] = self.model.space.width - 0.01
+            new_pos[0] = self.model.space.width - 0.1
         elif new_pos[0] < 0:
             new_pos[0] = 0
 
         if new_pos[1] > self.model.space.height:
-            new_pos[1] = self.model.space.height -0.01
+            new_pos[1] = self.model.space.height -0.1
         elif new_pos[1] < 0:
             new_pos[1] = 0
         self.model.space.move_agent(self, new_pos)

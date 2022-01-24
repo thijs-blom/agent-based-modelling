@@ -126,7 +126,7 @@ class SocialForce(Model):
                 init_speed,
                 init_speed,
                 False,
-                'nearest exit',
+                'follow the crowd',
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)

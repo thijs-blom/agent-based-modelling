@@ -22,9 +22,9 @@ def dead_draw(dead):
 
 canvas = SimpleCanvas(human_draw, wall_draw, dead_draw, 500, 500)
 chart0 =  ChartModule([{"Label": "Remained Human", "Color": "#AA0000"}], 10, 25)
-chart1 =  ChartModule([{"Label": "Caused Deaths", "Color": "#AA0000"}], 10, 25)
-chart2 =  ChartModule([{"Label": "Average Energy", "Color": "#AA0000"}], 10, 25)
-chart3 =  ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
+chart1 =  ChartModule([{"Label": "Caused Deaths", "Color": "#AA0001"}], 10, 25)
+chart2 =  ChartModule([{"Label": "Average Energy", "Color": "#AA002"}], 10, 25)
+chart3 =  ChartModule([{"Label": "Average Speed", "Color": "#AA0003"}], 10, 25)
 
 width = 100
 height = 100
