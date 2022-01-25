@@ -98,18 +98,16 @@ class SocialForce(Model):
         """
         Create self.population agents, with random positions and starting headings.
         """
-        radii_option = [0.2,0.25,0.3]
-        lam_option =[0.7,0.8,0.9]
         strategy_option = ['nearest exit', 'follow the crowd', 'least crowded exit']
         for i in range(self.population):
             x = self.random.random() * self.space.x_max
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
-            lam = np.random.choice(lam_option)
-            velocity = np.random.random(2) * 2 - 1
+            lam = np.random.uniform(0.7,0.95)
+            velocity = (np.random.random(2)-0.5)*0.0001 
             # dont know what is mass yet
             mass = 80
-            radii = random.choice(radii_option)
+            radii = np.random.uniform(0.37,0.55)
             current_timestep = 0
             init_speed = np.random.random()
             strategy = np.random.choice(strategy_option)
