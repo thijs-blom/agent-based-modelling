@@ -1,4 +1,5 @@
 # Python imports
+from __future__ import annotations
 import numpy as np
 
 # Project imports
@@ -284,9 +285,9 @@ class Human(CommonHuman):
             energy_lost = (crashing_strength / self.mass) * deduction_param
             # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
             if energy_lost > 0.25:
-               energy_lost = 0.25
+                energy_lost = 0.25
             self.energy -= energy_lost
-            self.energy = np.clip(self.energy, 0, )
+            self.energy = np.clip(self.energy, 0, 1)
             # print(f'crashed with another guy! : energy lost {energy_lost}')
         else:
             crashing_force = 0

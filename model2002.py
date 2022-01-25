@@ -86,7 +86,7 @@ class SocialForce(Model):
         Helper method to count trees in a given condition in a given model.
         """
         speed = 0
-        for human in self.model.schedule.agents:
+        for human in self.schedule.agents:
             speed += np.linalg.norm(human.velocity)
         return speed
 
