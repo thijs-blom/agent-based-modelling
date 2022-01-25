@@ -24,7 +24,7 @@ class SocialForce(Model):
         population=100,
         width=100,
         height=100,
-        max_speed=3,
+        max_speed=5,
         vision=10,
         obstacles=[],
         exits=[],
@@ -72,12 +72,10 @@ class SocialForce(Model):
         """
         Helper method to count trees in a given condition in a given model.
         """
-        count = 0
+        speed = 0
         for human in model.schedule.agents:
-            speed = np.linalg.norm(human.velocity)
-            if speed >= 0:
-                count += speed
-        return count
+            speed += np.linalg.norm(human.velocity)
+        return speed
 
     def make_agents(self):
         """
@@ -95,7 +93,7 @@ class SocialForce(Model):
             radii = np.random.uniform(0.37,0.55)
             current_timestep = 0
             init_speed = np.random.random()
-            init_desire_speed = 2
+            init_desired_speed = 2
             strategy = np.random.choice(strategy_option)
             human = Human(
                 i,
@@ -110,7 +108,7 @@ class SocialForce(Model):
                 lam,
                 current_timestep,
                 init_speed,
-                init_desire_speed,
+                init_desired_speed,
                 False,
                 'nearest exit'
             )
