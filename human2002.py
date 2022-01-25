@@ -82,9 +82,9 @@ class Human(CommonHuman):
         self.strategy = strategy
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
-
         
-        self.tau = 0.5
+        # Tau it the characteristic reaction time, as they move once a step/time unit, this is set to 1
+        self.tau = 2
 
     def desired_dir(self):
         """ Compute the desired direction of the agent
@@ -109,6 +109,7 @@ class Human(CommonHuman):
             # otherwise the destination is a mixed a nearest exit and the neighbors
             if np.linalg.norm(self.pos - self.dest) > 50:
                 rand = np.random.random()
+                print(rand)
                 if rand > 0.8:
                     dir = neighbor_dir
                 else:
@@ -137,7 +138,7 @@ class Human(CommonHuman):
         return closest 
 
     def least_crowded_exit(self):
-        # define exit busyness as a dictionary
+        # define exit business as a dictionary
         busyness = {}
         for i in range(len(self.model.exits)):
             exit = self.model.exits[i]
@@ -217,7 +218,7 @@ class Human(CommonHuman):
 
     def acceleration_term(self):
         """Compute the acceleration Term of agent"""
-        return (self.desired_speed() * self.desired_dir() - self.velocity) / Human.tau
+        return (self.desired_speed() * self.desired_dir() - self.velocity) / self.tau
 
     def people_effect(self, other):
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
@@ -352,7 +353,6 @@ class Human(CommonHuman):
         """
         Compute all forces acting on this agent, update its velocity and move.
         """
-        # self.dest = self.nearest_exit().get_center()
         # Compute accelaration term of agent
         self.velocity += self.acceleration_term()
 
@@ -396,14 +396,14 @@ class Human(CommonHuman):
         
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:
-            new_pos[0] = self.model.space.width - 0.0001
+            new_pos[0] = self.model.space.width - 0.00001
         elif new_pos[0] < 0:
-            new_pos[0] = 0 + 0.0001
+            new_pos[0] = 0
 
         if new_pos[1] > self.model.space.height:
-            new_pos[1] = self.model.space.height - 0.0001
+            new_pos[1] = self.model.space.height -0.00001
         elif new_pos[1] < 0:
-            new_pos[1] = 0 + 0.0001
+            new_pos[1] = 0
         self.model.space.move_agent(self, new_pos)
 
         self.timestep += 1
