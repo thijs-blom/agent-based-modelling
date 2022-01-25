@@ -26,6 +26,7 @@ class SocialForce(Model):
         height=100,
         max_speed=5,
         vision=10,
+        relaxation_time=1,
         obstacles=[],
         exits=[],
         init_amount_obstacles = 5,
@@ -43,7 +44,7 @@ class SocialForce(Model):
         """
         self.population = population
         self.vision = vision
-        self.speed = 1
+        self.relaxation_time = relaxation_time
         self.schedule = RandomActivation(self)
         self.space = ContinuousSpace(width, height, False)
         self.obstacles = obstacles
@@ -89,16 +90,16 @@ class SocialForce(Model):
             lam = np.random.uniform(0.7,0.95)
             velocity = (np.random.random(2)-0.5) 
             # dont know what is mass yet
-            mass = 80
+            mass = np.random.uniform(50, 80)
             radii = np.random.uniform(0.37,0.55)
             current_timestep = 0
             init_speed = np.random.random()
             init_desired_speed = 2
+            relax_t = self.relaxation_time
             strategy = np.random.choice(strategy_option)
             human = Human(
                 i,
                 self,
-                pos,
                 pos,
                 velocity,
                 self.max_speed,
@@ -110,7 +111,8 @@ class SocialForce(Model):
                 init_speed,
                 init_desired_speed,
                 False,
-                'nearest exit'
+                relax_t,
+                'follow the crowd'
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)

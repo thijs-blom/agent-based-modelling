@@ -62,6 +62,14 @@ model_params = {
         10,
         description="Vision of the agents",
     ),
+    "relaxation_time": UserSettableParameter(
+        "slider",
+        "Relaxation Time (1/tau)",
+        1,
+        0.5,
+        1,
+        0.01,
+        description="Relaxation Time"),
     "obstacles": init_obstacles,
     "exits": [exit1, exit2],
     "init_amount_obstacles": len(init_obstacles)
