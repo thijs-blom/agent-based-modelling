@@ -78,7 +78,7 @@ class Human(CommonHuman):
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
         
-        self.tau = 0.5
+        self.tau = 2
 
     def desired_dir(self):
         """ Compute the desired direction of the agent

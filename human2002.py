@@ -189,10 +189,20 @@ class Human(CommonHuman):
             neighbourhood_speed /= len(neighbours)
             print(neighbourhood_speed)
 
+<<<<<<< Updated upstream
             agent_speed = np.linalg.norm(self.velocity)
             # Return the panic index (eq 12)
             if neighbourhood_speed < self.init_desired_speed:
                 return 1 - neighbourhood_speed / self.init_desired_speed
+=======
+            # testing testing
+            if neighbourhood_speed / self.max_speed > 1:
+                raise ValueError
+
+            # Return the panic index (eq 12 baseline)
+            if neighbourhood_speed < self.init_speed:
+                return 1 - neighbourhood_speed / self.init_speed
+>>>>>>> Stashed changes
             else:
                 return 0
         return 0
@@ -209,7 +219,7 @@ class Human(CommonHuman):
         panic_index = self.panic_index()
         noise_scale = (1-panic_index)* Human.min_noise + panic_index * Human.max_noise
         # the random force is assumed to be random normal with scale = noise scale
-        return np.random.normal(loc=0.0, scale=noise_scale)
+        return 0 #np.random.normal(loc=0.0, scale=noise_scale)
         # return 0
 
     def acceleration_term(self):
@@ -341,6 +351,14 @@ class Human(CommonHuman):
         print(f'crashed with the walls! : energy lost {energy_lost}')
 
         return obt_force
+<<<<<<< Updated upstream
+=======
+    
+    def comfortness(self):
+        """Compute the comfortness of agent by the time he escape"""
+        # formula is given but it is optional for now
+        pass
+>>>>>>> Stashed changes
 
     def step(self):
         """
@@ -379,12 +397,17 @@ class Human(CommonHuman):
         # Compute random noise force
         self.velocity += self.panic_noise_effect()
         # Update the movement, position features of the agent
+<<<<<<< Updated upstream
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
         # so speed is impacked by the remainly energy of individual, the minimum speed is applied to ensured badly injured agent still move out
         # uncommented line 343 - 350 and comment below line if we want energy = 0 agent to be dead and become an obstacle
         #self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
+=======
+        print(np.linalg.norm(self.velocity))
+        self.avg_speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
+>>>>>>> Stashed changes
         self.velocity /= np.linalg.norm(self.velocity)
-        self.velocity *= self.speed
+        self.velocity *= self.avg_speed
         new_pos = self.pos + self.velocity
         
         # if out of bounds, put at bound
