@@ -34,7 +34,6 @@ class Human(CommonHuman):
             unique_id,
             model,
             pos: np.ndarray,
-            init_pos: np.ndarray,
             velocity: np.ndarray,
             max_speed: float,
             vision: float,
@@ -45,7 +44,7 @@ class Human(CommonHuman):
             init_speed: float,
             init_desired_speed: float,
             is_leader: bool,
-            relat_t: float,
+            relax_t: float,
             strategy: str,
     ):
         """
