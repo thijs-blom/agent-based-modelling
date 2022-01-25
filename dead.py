@@ -4,7 +4,7 @@ from obstacle import Obstacle
 
 class Dead(Obstacle):
     """A one-dimensional wall, represented by a line-segment"""
-    def __init__(self, pos, r):
+    def __init__(self, pos: np.ndarray, r: float):
         """Initialise a wall obstacle
 
         Note that both arguments must be one-dimensional arrays of size 2.
@@ -16,7 +16,7 @@ class Dead(Obstacle):
         self.pos = np.array(pos)
         self.r = r
 
-    def get_closest_point(self, other_point: np.array) -> np.array:
+    def get_closest_point(self, other_point: np.ndarray) -> np.ndarray:
         """Compute the closest point of the obstacle to the given point"""
 
         # TODO return closest point from circle with pos and r

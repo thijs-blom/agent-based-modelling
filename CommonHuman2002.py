@@ -1,11 +1,12 @@
 import numpy as np
 from mesa import Agent
 
+
 class CommonHuman(Agent):
     """
     An agent following rules from the social force model.
 
-    List of arguements fixed for every agent:
+    List of arguments fixed for every agent:
     
         tau: the default relaxation parameter
         min_noise: the min scale of noise added to agent's movement, SAME for each agent
@@ -24,7 +25,7 @@ class CommonHuman(Agent):
         Create a new Common Human agent
 
         Args:
-            unique_id: Unique agent identifyer.
+            unique_id: Unique agent identifier.
             model: Reference to the model object this agent is part of
         """
         super().__init__(unique_id, model)

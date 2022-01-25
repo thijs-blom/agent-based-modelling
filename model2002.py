@@ -4,41 +4,44 @@ Social Force Model
 A Mesa implementation of the social force model.
 Uses numpy arrays to represent vectors.
 """
-
+# Python imports
+from typing import List
 import numpy as np
 import random
+
+# Mesa imports
 from mesa import Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-from base_human import Human
-#from human2002 import Human
+# Project imports
+from human2002 import Human
+from obstacle import Obstacle
+
 
 class SocialForce(Model):
     """
     Social Force model. Handles agent creation, placement, exiting and scheduling.
     """
-
     def __init__(
         self,
-        population=100,
-        width=100,
-        height=100,
-        max_speed=5,
-        vision=10,
-        obstacles=[],
-        exits=[],
-        init_amount_obstacles = 5,
+        population: int = 100,
+        width: float = 100,
+        height: float = 100,
+        max_speed: float = 5,
+        vision: float = 10,
+        obstacles: List[Obstacle] = None,
+        exits: List[Obstacle] = None
     ):
         """
-        Create a new Flockers model.
+        Create a new instance of the social force model.
 
         Args:
             population: Number of Boids
             width, height: Size of the space.
-            speed: How fast should the Boids move.
-            vision: How far around should each Boid look for its neighbors
+            max_speed: TODO
+            vision: How far around should each agent look for its neighbours
             obstacles: A list of obstacles agents must avoid
             exits: A list of exits where users leave the room
         """
@@ -47,11 +50,11 @@ class SocialForce(Model):
         self.speed = 1
         self.schedule = RandomActivation(self)
         self.space = ContinuousSpace(width, height, False)
-        self.obstacles = obstacles
-        self.exits = exits
+        self.obstacles = obstacles if obstacles else []
+        self.exits = exits if exits else []
         self.max_speed = max_speed
         self.make_agents()
-        self.init_amount_obstacles = init_amount_obstacles
+        self.init_amount_obstacles = len(self.obstacles)
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 
@@ -60,35 +63,32 @@ class SocialForce(Model):
 
         self.datacollector = DataCollector(
             model_reporters={
-            "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
-            "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-            #"Average Energy": lambda m: self.count_energy(m) / self.population,
-            "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
+                "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
+                "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
+                #"Average Energy": lambda m: self.count_energy() / self.population,
+                "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
         
           # 'Amount of death': self.caused_death(),
         self.running = True
         self.datacollector.collect(self)
-    
-    
-    @staticmethod
-    def count_energy(model):
+
+    def count_energy(self):
         """
         Helper method to count trees in a given condition in a given model.
         """
         count = 0
-        for human in model.schedule.agents:
+        for human in self.schedule.agents:
             if human.energy >= 0:
                 count += human.energy
         return count
 
-    @staticmethod
-    def count_speed(model):
+    def count_speed(self):
         """
         Helper method to count trees in a given condition in a given model.
         """
         count = 0
-        for human in model.schedule.agents:
+        for human in self.schedule.agents:
             speed = np.linalg.norm(human.velocity)
             if speed >= 0:
                 count += speed
@@ -105,7 +105,7 @@ class SocialForce(Model):
             pos = np.array((x, y))
             lam = np.random.uniform(0.7,0.95)
             velocity = (np.random.random(2)-0.5)*0.0001 
-            # dont know what is mass yet
+            # don't know what is mass yet
             mass = 80
             radii = np.random.uniform(0.37,0.55)
             current_timestep = 0
@@ -131,7 +131,7 @@ class SocialForce(Model):
             self.schedule.add(human)
 
     def step(self):
-        '''Let the agent move/act.'''
+        """Let the agent move/act."""
         self.schedule.step()
 
         # Save the statistics
@@ -141,8 +141,8 @@ class SocialForce(Model):
             self.running = False
 
     def remove_agent(self, agent):
-        '''
+        """
         Method that removes an agent from the grid and the correct scheduler.
-        '''
+        """
         self.space.remove_agent(agent)
         self.schedule.remove(agent)
