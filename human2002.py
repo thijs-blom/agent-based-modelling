@@ -45,6 +45,7 @@ class Human(CommonHuman):
             init_speed: float,
             init_desired_speed: float,
             is_leader: bool,
+            relat_t: float,
             strategy: str,
     ):
         """
@@ -69,7 +70,6 @@ class Human(CommonHuman):
         """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
-        self.init_pos = np.array(init_pos)
         self.max_speed = max_speed
         self.min_speed = 0.2
         self.velocity = velocity
@@ -82,12 +82,11 @@ class Human(CommonHuman):
         self.init_speed = init_speed
         self.is_leader = is_leader
         self.energy = 1
+        self.tau = 1/ relax_t
         self.strategy = strategy
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
 
-        # Tau it the characteristic reaction time, as they move once a step/time unit, this is set to 1
-        self.tau = 2
 
     def desired_dir(self) -> np.ndarray:
         """ Compute the desired direction of the agent
@@ -108,18 +107,17 @@ class Human(CommonHuman):
             neighbor_dir = self.neighbor_direction(dest_dir)
             neighbor_dir /= np.linalg.norm(neighbor_dir)
 
-            # TODO: 15 of 50?
-            # if exit is within 15 meters, the destination is the nearest exit
+            # if exit is within 50 meters, the destination is the nearest exit
             # otherwise the destination is a mixed a nearest exit and the neighbors
-            if np.linalg.norm(self.pos - self.dest) > 50:
-                rand = np.random.random()
-                # print(rand)
-                if rand > 0.8:
-                    dir = neighbor_dir
-                else:
-                    dir = dest_dir
-            else:
-                dir = dest_dir
+            dir = neighbor_dir
+            # if np.linalg.norm(self.pos - self.dest) > 50:
+            #     rand = np.random.random()
+            #     if rand > 0.8:
+            #         dir = neighbor_dir
+            #     else:
+            #         dir = dest_dir
+            # else:
+            #     dir = dest_dir
 
             dir /= np.linalg.norm(dir)
 
