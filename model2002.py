@@ -55,11 +55,9 @@ class SocialForce(Model):
         self.max_speed = max_speed
         self.make_agents()
         self.init_amount_obstacles = len(self.obstacles)
+        self.ending_energy_lst = np.ones(self.population)
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
-
-        # NOT WORKING YET, NEED TO COUNT THE INCREASE IN OBSTACLES
-        # "Caused Deaths": lambda m: len(self.obstacles) - self.init_amount_obstacles,
 
         self.datacollector = DataCollector(
             model_reporters={
@@ -87,12 +85,10 @@ class SocialForce(Model):
         """
         Helper method to count trees in a given condition in a given model.
         """
-        count = 0
-        for human in self.schedule.agents:
-            speed = np.linalg.norm(human.velocity)
-            if speed >= 0:
-                count += speed
-        return count
+        speed = 0
+        for human in self.model.schedule.agents:
+            speed += np.linalg.norm(human.velocity)
+        return speed
 
     def make_agents(self):
         """
@@ -104,16 +100,18 @@ class SocialForce(Model):
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
             lam = np.random.uniform(0.7,0.95)
-            velocity = (np.random.random(2)-0.5)*0.0001 
+            velocity = (np.random.random(2)-0.5)
             # don't know what is mass yet
             mass = 80
             radii = np.random.uniform(0.37,0.55)
             current_timestep = 0
             init_speed = np.random.random()
+            init_desired_speed = 2
             strategy = np.random.choice(strategy_option)
             human = Human(
                 i,
                 self,
+                pos,
                 pos,
                 velocity,
                 self.max_speed,
@@ -123,9 +121,9 @@ class SocialForce(Model):
                 lam,
                 current_timestep,
                 init_speed,
-                init_speed,
+                init_desired_speed,
                 False,
-                strategy
+                'nearest exit'
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)
@@ -139,10 +137,12 @@ class SocialForce(Model):
 
         if self.schedule.get_agent_count() == 0:
             self.running = False
+            print(sum(self.ending_energy_lst)/self.population)
 
     def remove_agent(self, agent):
         """
         Method that removes an agent from the grid and the correct scheduler.
         """
+        self.ending_energy_lst[agent.unique_id] = agent.energy
         self.space.remove_agent(agent)
         self.schedule.remove(agent)

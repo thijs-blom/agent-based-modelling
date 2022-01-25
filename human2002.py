@@ -33,6 +33,7 @@ class Human(CommonHuman):
             unique_id,
             model,
             pos: np.ndarray,
+            init_pos: np.ndarray,
             velocity: np.ndarray,
             max_speed: float,
             vision: float,
@@ -40,8 +41,8 @@ class Human(CommonHuman):
             radius: float,
             lam: float,
             current_timestep: int,
-            avg_speed: float,
             init_speed: float,
+            init_desired_speed: float,
             is_leader: bool,
             strategy: str,
     ):
@@ -61,22 +62,22 @@ class Human(CommonHuman):
             lam: the 'front impact' parameter of agent to describe the anisotropic character of pedestrian interaction
             panic: The panic level of agent
             current_timestep: The current time step t
-            avg_speed: The speed updated at t-1 or initialized at t = 0
             init_speed: The initial speed of agent
+            init_desire_speed : the initial desired speed
             is_leader: whether the agent is a leader
         """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
+        self.init_pos = np.array(init_pos)
         self.max_speed = max_speed
+        self.min_speed = 0.2
         self.velocity = velocity
         self.vision = vision
-        # mass is a random value from uniform 0-100 ?
-        # self.mass = np.random.random() * 100
         self.mass = mass
         self.radius = radius
         self.lam = lam
         self.timestep = current_timestep
-        self.avg_speed = avg_speed
+        self.init_desired_speed = init_desired_speed
         self.init_speed = init_speed
         self.is_leader = is_leader
         self.energy = 1
@@ -169,24 +170,22 @@ class Human(CommonHuman):
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
         if len(neighbours) > 0:
             for neighbour in neighbours:
-                neighbourhood_speed += neighbour.avg_speed
+                neighbourhood_speed += np.linalg.norm(neighbour.velocity)
             neighbourhood_speed /= len(neighbours)
 
-        # testing testing
-        if neighbourhood_speed / self.max_speed > 1:
-            raise ValueError
+            agent_speed = np.linalg.norm(self.velocity)
+            # Return the panic index (eq 12)
+            if neighbourhood_speed < self.init_desired_speed:
+                return 1 - neighbourhood_speed / self.init_desired_speed
+            else:
+                return 0
+        return 0
 
-        # Return the panic index (eq 12, but then the divisor and divided flipped)
-        if neighbourhood_speed > self.init_speed:
-            return 1 - self.init_speed / neighbourhood_speed
-        else:
-            return 0
-
-    def desired_speed(self) -> float:
+    def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
         # eq 11 of baseline paper
         n = self.panic_index()
-        return (1 - n) * self.init_speed + n * self.max_speed
+        return (1-n) * self.init_desired_speed + n * self.max_speed
 
     def panic_noise_effect(self):
         """Compute the force of noise scaled by individual's panic level"""
@@ -281,12 +280,13 @@ class Human(CommonHuman):
             body_force = Human.bfc * contact_diff * n_ij_val
             crashing_force = sliding_force + body_force
             crashing_strength = np.linalg.norm(crashing_force)
-            deduction_param = 0.0002
+            deduction_param = 0.000001
             energy_lost = (crashing_strength / self.mass) * deduction_param
             # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
-            if energy_lost > 0.5:
-                energy_lost = 0.5
+            if energy_lost > 0.25:
+               energy_lost = 0.25
             self.energy -= energy_lost
+            self.energy = np.clip(self.energy, 0, )
             # print(f'crashed with another guy! : energy lost {energy_lost}')
         else:
             crashing_force = 0
@@ -316,11 +316,12 @@ class Human(CommonHuman):
             - Human.sfc * theta(self.radius - d) * np.dot(self.velocity, t) * t
 
         # TODO: Check if energy should be added back in
-        # crashing_force = Human.bfc * theta_val * n_ib_val - Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
+        # crashing_force = Human.bfc * theta_val * n_ib_val - Human.sfc_wall * theta_val * (self.velocity * tib_val) * tib_val
         # crashing_strength = np.linalg.norm(crashing_force)
-        # deduction_param = 0.0002
+        # deduction_param = 0.000005
         # energy_lost = theta_val * ( crashing_strength / self.mass ) * deduction_param
         # self.energy -= energy_lost
+        # self.energy = np.clip(self.energy,0,1)
         # print(f'crashed with the walls! : energy lost {energy_lost}')
 
         return obt_force
@@ -370,6 +371,9 @@ class Human(CommonHuman):
 
         # Update the movement, position features of the agent
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
+        # so speed is impacked by the remainly energy of individual, the minimum speed is applied to ensured badly injured agent still move out
+        # uncommented line 343 - 350 and comment below line if we want energy = 0 agent to be dead and become an obstacle
+        #self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
         self.velocity /= np.linalg.norm(self.velocity)
         self.velocity *= self.speed
         new_pos = self.pos + self.velocity
