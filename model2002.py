@@ -6,14 +6,13 @@ Uses numpy arrays to represent vectors.
 """
 
 import numpy as np
-import random
 from mesa import Model
 from mesa.space import ContinuousSpace
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-from base_human import Human
-#from human2002 import Human
+# from base_human import Human
+from human2002 import Human
 
 class SocialForce(Model):
     """
@@ -25,7 +24,7 @@ class SocialForce(Model):
         population=100,
         width=100,
         height=100,
-        max_speed=5,
+        max_speed=3,
         vision=10,
         obstacles=[],
         exits=[],
@@ -52,35 +51,21 @@ class SocialForce(Model):
         self.max_speed = max_speed
         self.make_agents()
         self.init_amount_obstacles = init_amount_obstacles
+        self.ending_energy_lst =np.ones(self.population)
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
-
-        # NOT WORKING YET, NEED TO COUNT THE INCREASE IN OBSTACLES
-        # "Caused Deaths": lambda m: len(self.obstacles) - self.init_amount_obstacles,
 
         self.datacollector = DataCollector(
             model_reporters={
             "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
-            "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-            #"Average Energy": lambda m: self.count_energy(m) / self.population,
+            # "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
+            # "Average Energy": lambda m: self.count_energy(m) / self.population,
             "Average Speed" : lambda m: self.count_speed(m) / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
         
           # 'Amount of death': self.caused_death(),
         self.running = True
         self.datacollector.collect(self)
-    
-    
-    @staticmethod
-    def count_energy(model):
-        """
-        Helper method to count trees in a given condition in a given model.
-        """
-        count = 0
-        for human in model.schedule.agents:
-            if human.energy >= 0:
-                count += human.energy
-        return count
 
     @staticmethod
     def count_speed(model):
@@ -110,10 +95,12 @@ class SocialForce(Model):
             radii = np.random.uniform(0.37,0.55)
             current_timestep = 0
             init_speed = np.random.random()
+            init_desire_speed = 2
             strategy = np.random.choice(strategy_option)
             human = Human(
                 i,
                 self,
+                pos,
                 pos,
                 velocity,
                 self.max_speed,
@@ -123,12 +110,13 @@ class SocialForce(Model):
                 lam,
                 current_timestep,
                 init_speed,
-                init_speed,
+                init_desire_speed,
                 False,
-                strategy
+                'nearest exit'
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)
+            print(human.unique_id)
 
     def step(self):
         '''Let the agent move/act.'''
@@ -139,10 +127,12 @@ class SocialForce(Model):
 
         if self.schedule.get_agent_count() == 0:
             self.running = False
+            print(sum(self.ending_energy_lst)/self.population)
 
     def remove_agent(self, agent):
         '''
         Method that removes an agent from the grid and the correct scheduler.
         '''
+        self.ending_energy_lst[agent.unique_id] = agent.energy
         self.space.remove_agent(agent)
         self.schedule.remove(agent)

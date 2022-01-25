@@ -30,6 +30,7 @@ class Human(CommonHuman):
         unique_id,
         model,
         pos,
+        init_pos,
         velocity,
         max_speed,
         vision,
@@ -37,8 +38,8 @@ class Human(CommonHuman):
         radii,
         lam,
         current_timestep,
-        avg_speed,
         init_speed,
+        init_desire_speed,
         is_leader,
         strategy,
     ):
@@ -60,20 +61,21 @@ class Human(CommonHuman):
             current_timestep: The current time step t
             avg_speed: The speed updated at t-1 or initialized at t = 0
             init_speed: The initial speed of agent
+            init_desire_speed : the initial desired speed
             is_leader: whether the agent is a leader
         """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
+        self.init_pos = np.array(init_pos)
         self.max_speed = max_speed
+        self.min_speed = 0.2
         self.velocity = velocity
         self.vision = vision
-        # mass is a random value from uniform 0-100 ?
-        # self.mass = np.random.random() * 100
         self.mass = mass
         self.radii = radii
         self.lam = lam
         self.timestep = current_timestep
-        self.avg_speed = avg_speed
+        self.init_desire_speed = init_desire_speed
         self.init_speed = init_speed
         self.is_leader = is_leader
         self.energy = 1
@@ -158,33 +160,51 @@ class Human(CommonHuman):
         
         return sum_of_direction
     
-    
     def panic_index(self):
-        """Compute the panic index of agent using average speed"""        
-        # Compute average speed of the neighbourhood
-        neighbourhood_speed = 0
-        neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
-        if len(neighbours) > 0:
-            for neighbour in neighbours:
-                neighbourhood_speed += neighbour.avg_speed
-            neighbourhood_speed /= len(neighbours)
-
-        # testing testing
-        if neighbourhood_speed / self.max_speed > 1:
-            raise ValueError
-
-        # Return the panic index (eq 12, but then the divisor and divided flipped)
-        if neighbourhood_speed > self.init_speed:
-            return 1 - self.init_speed / neighbourhood_speed
+        """Compute the panic index of agent using average speed""" 
+        # Compute average speed into desired direction for the agent
+        pos_change = self.pos - self.init_pos
+        desire_direction = self.desired_dir()
+        proj_distance = np.dot(pos_change, desire_direction) / np.linalg.norm(desire_direction)
+        
+        # if the past movement is on the opposite direction the agent panic
+        if proj_distance < 0:
+            return 1
         else:
-            return 0
+            avg_speed = proj_distance / self.timestep
+            if self.init_desire_speed > avg_speed:
+                return 1 - avg_speed / self.init_desire_speed
+            else:
+                return 0
 
+
+    # def panic_index(self):
+    #     """Compute the panic index of agent using average speed"""        
+    #     # Compute average speed of the neighbourhood
+    #     neighbourhood_speed = 0
+    #     neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
+    #     if len(neighbours) > 0:
+    #         for neighbour in neighbours:
+    #             neighbourhood_speed += np.linalg.norm(neighbour.velocity)
+    #         neighbourhood_speed /= len(neighbours)
+    #         print(neighbourhood_speed)
+
+    #     # # testing testing
+    #     # if neighbourhood_speed / self.max_speed > 1:
+    #     #     raise ValueError
+
+    #     agent_speed = np.linalg.norm(self.velocity)
+    #     # Return the panic index (eq 12, but then the divisor and divided flipped)
+    #     if neighbourhood_speed > agent_speed:
+    #         return 1 - agent_speed / neighbourhood_speed
+    #     else:
+    #         return 0
 
     def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
         # eq 11 of baseline paper
         n = self.panic_index()
-        return (1-n) * self.init_speed + n * self.max_speed
+        return (1-n) * self.init_desire_speed + n * self.max_speed
 
     def panic_noise_effect(self):
         """Compute the force of noise scaled by individual's panic level"""
@@ -264,12 +284,13 @@ class Human(CommonHuman):
             body_force = Human.bfc * contact_diff * n_ij_val
             crashing_force = sliding_force + body_force
             crashing_strength = np.linalg.norm(crashing_force)
-            deduction_param = 0.0002
+            deduction_param = 0.000001
             energy_lost = ( crashing_strength / self.mass ) * deduction_param
             # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
-            if energy_lost > 0.5:
-               energy_lost = 0.5 
+            if energy_lost > 0.25:
+               energy_lost = 0.25 
             self.energy -= energy_lost
+            self.energy = np.clip(self.energy,0,1)
             # print(f'crashed with another guy! : energy lost {energy_lost}')
         else:
             crashing_force = 0
@@ -314,11 +335,12 @@ class Human(CommonHuman):
         obt_force *= n_ib_val
         obt_force -= Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
 
-        crashing_force = Human.bfc * theta_val * n_ib_val - Human.sfc * theta_val * (self.velocity * tib_val) * tib_val
+        crashing_force = Human.bfc * theta_val * n_ib_val - Human.sfc_wall * theta_val * (self.velocity * tib_val) * tib_val
         crashing_strength = np.linalg.norm(crashing_force)
-        deduction_param = 0.0002
+        deduction_param = 0.000005
         energy_lost = theta_val * ( crashing_strength / self.mass ) * deduction_param
         self.energy -= energy_lost
+        self.energy = np.clip(self.energy,0,1)
         print(f'crashed with the walls! : energy lost {energy_lost}')
     
     def comfortness(self):
@@ -330,7 +352,7 @@ class Human(CommonHuman):
         """
         Compute all forces acting on this agent, update its velocity and move.
         """
-        self.dest = self.nearest_exit().get_center()
+        # self.dest = self.nearest_exit().get_center()
         # Compute accelaration term of agent
         self.velocity += self.acceleration_term()
 
@@ -341,14 +363,14 @@ class Human(CommonHuman):
         #     distance = np.sqrt((self.pos[0] - other.pos[0])**2 + (self.pos[1] - other.pos[1])**2)
         #     self.energy -= distance / 10
         
-        if self.energy <= 0:
-            # casualty = Dead(self.pos, self.mass/100)
-            # perhaps makes more sense to let the dead agent obstacle radii be a function of the original radii?
-            casualty = Dead(self.pos, self.radii*5)
-            self.model.obstacles.append(casualty)
-            self.model.remove_agent(self)
-            print('another died!')
-            return
+        # if self.energy <= 0:
+        #     # casualty = Dead(self.pos, self.mass/100)
+        #     # perhaps makes more sense to let the dead agent obstacle radii be a function of the original radii?
+        #     casualty = Dead(self.pos, self.radii*5)
+        #     self.model.obstacles.append(casualty)
+        #     self.model.remove_agent(self)
+        #     print('another died!')
+        #     return
  
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
 
@@ -364,21 +386,24 @@ class Human(CommonHuman):
         # Compute random noise force
         self.velocity += self.panic_noise_effect()
         # Update the movement, position features of the agent
-        self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
+        self.speed = np.clip(np.linalg.norm(self.velocity)*self.energy, 0, self.max_speed)
+        # so speed is impacked by the remainly energy of individual, the minimum speed is applied to ensured badly injured agent still move out
+        # uncommented line 343 - 350 and comment below line if we want energy = 0 agent to be dead and become an obstacle
+        self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
         self.velocity /= np.linalg.norm(self.velocity)
         self.velocity *= self.speed
         new_pos = self.pos + self.velocity
         
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:
-            new_pos[0] = self.model.space.width - self.radii
+            new_pos[0] = self.model.space.width - 0.0001
         elif new_pos[0] < 0:
-            new_pos[0] = 0 + self.radii
+            new_pos[0] = 0 + 0.0001
 
         if new_pos[1] > self.model.space.height:
-            new_pos[1] = self.model.space.height - self.radii
+            new_pos[1] = self.model.space.height - 0.0001
         elif new_pos[1] < 0:
-            new_pos[1] = 0 + self.radii
+            new_pos[1] = 0 + 0.0001
         self.model.space.move_agent(self, new_pos)
 
         self.timestep += 1
