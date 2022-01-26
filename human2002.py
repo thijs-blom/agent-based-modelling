@@ -235,6 +235,29 @@ class Human(CommonHuman):
 
         return att_force
 
+    def leader_attractive_effect(self, exit: Exit) -> np.ndarray:
+        """Stub to split people_effect in more functions"""
+        # TODO: Check if we agree on the formulation of leading force
+        # This is f^{att}_{ik} as defined in page 11. Could also use f^{att}_{ij}.
+
+        # Define some variables used in the equation defining the force
+        d = np.linalg.norm(self.pos - exit.get_center())
+        r = self.radius 
+        n = (self.pos - exit.get_center()) / d
+        cosphi = np.dot(-n, self.velocity / np.linalg.norm(self.velocity))
+        vision_term = (self.lam + (1 - self.lam) * (1 + cosphi) / 2)
+
+        # att_force is not explicitly given but hints of design is provided on page 11, paragraph 2
+        # lead_strength is provided
+        # for attraction force of leader we need to revert the direction
+        # such that n_ki points from the agent i to the leader
+
+        # TODO: According to the paper, the constant A_{ik} is usually small, negative and time-dependent.
+        # Since this constant is positive in our model, a minus has been added in front of this calculation.
+        exit_att_force = - Human.lead_strength * np.exp(r / Human.lead_range) * vision_term * n
+
+        return exit_att_force
+
     def crash_effect(self, other: Human) -> np.ndarray:
         """Stub to split people_effect in more functions"""
         d = np.linalg.norm(self.pos - other.pos)
@@ -425,7 +448,12 @@ class Human(CommonHuman):
         # Handle the repulsive effects from obstacles
         for obstacle in self.model.obstacles:
             # Compute repulsive effect from obstacles
-            self.velocity += self.boundary_effect(obstacle) / self.mass
+            if np.linalg.norm(self.pos - obstacle.get_center()) < 0.5 :
+                self.velocity += self.boundary_effect(obstacle) / self.mass
+
+        # for exit in self.model.exits:
+        #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
+        #         self.velocity += self.leader_attractive_effect(exit) / self.mass
 
         # Compute random noise force
         self.velocity += self.panic_noise_effect()
