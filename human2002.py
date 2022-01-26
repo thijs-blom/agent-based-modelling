@@ -1,13 +1,13 @@
 # Python imports
 from __future__ import annotations
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Project imports
 from CommonHuman2002 import CommonHuman
 from obstacle import Obstacle
 from dead import Dead
 from exit import Exit
-
 
 class Human(CommonHuman):
     """
@@ -81,7 +81,7 @@ class Human(CommonHuman):
         self.init_speed = init_speed
         self.is_leader = is_leader
         self.energy = 1
-        self.tau = 1/ relax_t
+        self.tau = 1 / relax_t
         self.strategy = strategy
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
@@ -100,6 +100,12 @@ class Human(CommonHuman):
             dir /= np.linalg.norm(dir)
 
         elif self.strategy == 'follow the crowd':
+            # Only follow the direction your neighbours are following
+            neighbor_dir = self.neighbor_direction(self.velocity)
+            neighbor_dir /= np.linalg.norm(neighbor_dir)
+            dir = neighbor_dir
+
+        elif self.strategy == 'hesitator':
             self.dest = self.nearest_exit().get_center()
             dest_dir = self.dest - self.pos
             dest_dir /= np.linalg.norm(dest_dir)
@@ -109,14 +115,14 @@ class Human(CommonHuman):
             # if exit is within 50 meters, the destination is the nearest exit
             # otherwise the destination is a mixed a nearest exit and the neighbors
             dir = neighbor_dir
-            # if np.linalg.norm(self.pos - self.dest) > 50:
-            #     rand = np.random.random()
-            #     if rand > 0.8:
-            #         dir = neighbor_dir
-            #     else:
-            #         dir = dest_dir
-            # else:
-            #     dir = dest_dir
+            if np.linalg.norm(self.pos - self.dest) > 50:
+                rand = np.random.random()
+                if rand > 0.8:
+                    dir = neighbor_dir
+                else:
+                    dir = dest_dir
+            else:
+                dir = dest_dir
 
             dir /= np.linalg.norm(dir)
 
@@ -191,8 +197,8 @@ class Human(CommonHuman):
         panic_index = self.panic_index()
         noise_scale = (1 - panic_index) * Human.min_noise + panic_index * Human.max_noise
         # the random force is assumed to be random normal with scale = noise scale
-        return np.random.normal(loc=0.0, scale=noise_scale)
-        # return 0
+        # return np.random.normal(loc=0.0, scale=noise_scale)
+        return 0
 
     def acceleration_term(self) -> np.ndarray:
         """Compute the acceleration Term of agent"""
@@ -413,7 +419,7 @@ class Human(CommonHuman):
         Compute all forces acting on this agent, update its velocity and move.
         """
         # Compute acceleration term of agent
-        self.velocity += self.acceleration_term()
+        f_acc = self.acceleration_term()
 
         # TODO: Is this still necessary?
         # neighbours = self.model.space.get_neighbors(self.pos, 0.5, False)
@@ -433,28 +439,30 @@ class Human(CommonHuman):
         #     return
 
         # Handle the repulsive effects from other people
+        self.f_soc = np.array([0.,0.])
+        
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
         for other in neighbours:
             # Compute repulsive effect from other people
-            self.velocity += self.people_repulsive_effect(other) / self.mass
+            self.f_soc += self.people_repulsive_effect(other) / self.mass
 
             # Follow the leader effect
             if other.is_leader:
-                self.velocity += self.leader_attractive_effect(other) / self.mass
+                self.f_soc += self.leader_attractive_effect(other) / self.mass
 
             # Crash effect
-            self.velocity += self.crash_effect(other) / self.mass
+            self.f_soc += self.crash_effect(other) / self.mass
 # Type I
-
+        f_obs = np.array([0.,0.])
         # Handle the repulsive effects from obstacles
         for obstacle in self.model.obstacles:
             exit =  self.nearest_exit()
             if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
-                self.velocity += self.exit_attractive_effect(exit) / self.mass
-                self.velocity += (self.boundary_effect(obstacle) / self.mass) * 0.2
+                f_obs += self.exit_attractive_effect(exit) / self.mass
+                f_obs += (self.boundary_effect(obstacle) / self.mass) * 0.2
             # Compute repulsive effect from obstacles
             else:
-                self.velocity += self.boundary_effect(obstacle) / self.mass
+                f_obs += self.boundary_effect(obstacle) / self.mass
 
 #  Type II
         # for obstacle in self.model.obstacles:
@@ -466,13 +474,14 @@ class Human(CommonHuman):
         #         self.velocity += self.leader_attractive_effect(exit) / self.mass
 
         # Compute random noise force
-        self.velocity += self.panic_noise_effect()
+        f_noise = self.panic_noise_effect()
+        self.velocity += f_acc + self.f_soc + f_obs + f_noise
 
         # Update the movement, position features of the agent
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
         # so speed is impacked by the remainly energy of individual, the minimum speed is applied to ensured badly injured agent still move out
         # uncommented line 343 - 350 and comment below line if we want energy = 0 agent to be dead and become an obstacle
-        #self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
+        # self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
         self.velocity /= np.linalg.norm(self.velocity)
         self.velocity *= self.speed
         new_pos = self.pos + self.velocity
@@ -496,3 +505,18 @@ class Human(CommonHuman):
             if exit.in_exit(self.pos):
                 self.model.remove_agent(self)
                 break
+        
+        if self.unique_id == 0:
+
+            plt.quiver(*self.pos, f_acc[0], f_acc[1], color=['r'], label='acc')
+            plt.quiver(*self.pos, self.f_soc[0], self.f_soc[1], color=['b'], label='social')
+            plt.quiver(*self.pos, f_obs[0], f_obs[1], color=['g'], label='obstable')  
+            plt.ylim(0,20)  
+            plt.xlim(0,20) 
+            plt.xlabel('width')
+            plt.ylabel('height')
+            plt.legend()
+            plt.show()
+            print("Social f:", self.f_soc)
+            print("Acceleration f:", f_acc)
+            print("Obstacle f:", f_obs)

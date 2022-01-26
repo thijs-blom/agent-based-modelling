@@ -8,22 +8,24 @@ from exit import Exit
 from wall import Wall
 from dead import Dead
 from human2002 import Human
+# from base_human import Human
 from model2002 import SocialForce
 
 import numpy as np
 from typing import Dict
 
+# Define the dimensions of the simulation space
+width = 20
+height = 20
 
 def human_draw(agent: Human) -> Dict:
-    return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Red"}
-
+    return {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Red"}
 
 def wall_draw(wall: Wall) -> Dict:
     return {"Shape": "line", "w": 5, "Color": "Black"}
 
-
 def dead_draw(dead: Dead) -> Dict:
-    return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Black"}
+    return {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Black"}
 
 
 # Define canvas and charts
@@ -33,24 +35,18 @@ chart1 = ChartModule([{"Label": "Number of Casualties", "Color": "#AA0000"}], 10
 chart2 = ChartModule([{"Label": "Average Energy", "Color": "#AA0000"}], 10, 25)
 chart3 = ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
 
-# Define the dimensions of the simulation space
-width = 100
-height = 100
-
 # Define all walls in the system
-wall1 = Wall(np.array([50, 0]), np.array([50, 50]))
-
-side_wall1 = Wall(np.array([0, 5]), np.array([0, height]))
+side_wall1 = Wall(np.array([0, 0]), np.array([0, height]))
 side_wall2 = Wall(np.array([0, 0]), np.array([width, 0]))
 side_wall3 = Wall(np.array([width, 0]), np.array([width, height]))
-side_wall4 = Wall(np.array([0, height]), np.array([width/2 - 5, height]))
-side_wall5 = Wall(np.array([width/2, height]), np.array([width, height]))
+side_wall4 = Wall(np.array([0, height]), np.array([width/2, height]))
+side_wall5 = Wall(np.array([width/2 + 2, height]), np.array([width, height]))
 
-init_obstacles = [side_wall1, side_wall2, side_wall3, side_wall4, side_wall5, wall1]
+init_obstacles = [side_wall1, side_wall2, side_wall3, side_wall4, side_wall5]
 
 # Define all exits in the system
-exit1 = Exit(np.array([0, 0]), np.array([0, 5]))
-exit2 = Exit(np.array([45, 100]), np.array([50, 100]))
+#exit1 = Exit(np.array([0, 0]), np.array([1, 0]))
+exit2 = Exit(np.array([width/2, height]), np.array([width/2 + 2, height]))
 
 # Set up all the parameters to be entered into the model
 model_params = {
@@ -58,7 +54,7 @@ model_params = {
         "slider",
         "Population",
         100,
-        10,
+        1,
         1000,
         description="The initial population",
     ),
@@ -81,24 +77,56 @@ model_params = {
         0.01,
         description="Relaxation Time"),
     "obstacles": init_obstacles,
-    "exits": [exit1, exit2]
+    "exits": [exit2]
 }
 
 # Define and launch the server
 server = ModularServer(SocialForce, [canvas, chart0, chart3], "Escape Panic", model_params)
 
-model_reporters = {
-    "Number of Humans in Environment": lambda m: m.schedule.get_agent_count(),
-    # "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-    # "Average Energy": lambda m: self.count_energy(m) / self.population,
-    "Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
-    }
+# # Set up all the parameters to be entered into the model
+# model_params = {
+#     "width": width,
+#     "height": height,
+#     "obstacles": init_obstacles,
+#     "exits": [exit1, exit2]
+# }
 
-# batch = BatchRunner(SocialForce,
-#                     max_steps=1000,
-#                     iterations=10,
-#                     model_reporters= model_reporters,
-#                     display_progress=True)
-# batch.run_all()
+# model_reporters = {
+#     "Number of Humans in Environment": lambda m: m.schedule.get_agent_count(),
+#     # "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
+#     # "Average Energy": lambda m: self.count_energy(m) / self.population,
+#     "Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
+#     }
+
+# parameters = {
+#     'names': ['population', 'relaxation_time', 'vision'],
+#     'bounds': [[10, 1000], [0.5, 0.1], [1, 10]]
+# }
+
+# distinct_samples = 2
+# data = {}
+
+# for i, var in enumerate(parameters['names']):
+#     # Get the bounds for this variable and get <distinct_samples> samples within this space (uniform)
+#     samples = np.linspace(*parameters['bounds'][i], num=distinct_samples)
+    
+#     # Keep in mind that wolf_gain_from_food should be integers. You will have to change
+#     # your code to acommodate for this or sample in such a way that you only get integers.
+#     if var == 'population':
+#         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples, dtype=int)
+    
+#     batch = BatchRunner(SocialForce,
+#                         max_steps=10,
+#                         iterations=1,
+#                         fixed_parameters=model_params,
+#                         variable_parameters={var: samples},
+#                         model_reporters= model_reporters,
+#                         display_progress=True)
+#     batch.run_all()
+
+#     data[var] = batch.get_model_vars_dataframe()
+# file = open("test.txt", "w")
+# file.write(data)
+# file.close()
 
 server.launch()
