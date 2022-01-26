@@ -198,17 +198,72 @@ class Human(CommonHuman):
         """Compute the acceleration Term of agent"""
         return (self.desired_speed() * self.desired_dir() - self.velocity) / self.tau
 
-    def people_repulsive_effect(self, other: Human):
+    def people_repulsive_effect(self, other: Human) -> np.ndarray:
         """Stub to split people_effect in more functions"""
-        raise NotImplementedError
+        # Define some variables used in the equation defining the force
+        d = np.linalg.norm(self.pos - other.pos)
+        r = self.radius + other.radius - d
+        n = (self.pos - other.pos) / d
+        cosphi = np.dot(-n, self.velocity / np.linalg.norm(self.velocity))
+        vision_term = (self.lam + (1 - self.lam) * (1 + cosphi) / 2)
 
-    def leader_attractive_effect(self, leader: Human):
-        """Stub to split people_effect in more functions"""
-        raise NotImplementedError
+        # the social repulsive (distancing) force: eq 3 in baseline
+        social_force = Human.soc_strength * np.exp(r / Human.soc_range) * vision_term * n
 
-    def crash_effect(self, other: Human):
+        return social_force
+
+    def leader_attractive_effect(self, leader: Human) -> np.ndarray:
         """Stub to split people_effect in more functions"""
-        raise NotImplementedError
+        # TODO: Check if we agree on the formulation of leading force
+        # This is f^{att}_{ik} as defined in page 11. Could also use f^{att}_{ij}.
+
+        # Define some variables used in the equation defining the force
+        d = np.linalg.norm(self.pos - leader.pos)
+        r = self.radius + leader.radius - d
+        n = (self.pos - leader.pos) / d
+        cosphi = np.dot(-n, self.velocity / np.linalg.norm(self.velocity))
+        vision_term = (self.lam + (1 - self.lam) * (1 + cosphi) / 2)
+
+        # att_force is not explicitly given but hints of design is provided on page 11, paragraph 2
+        # lead_strength is provided
+        # for attraction force of leader we need to revert the direction
+        # such that n_ki points from the agent i to the leader
+
+        # TODO: According to the paper, the constant A_{ik} is usually small, negative and time-dependent.
+        # Since this constant is positive in our model, a minus has been added in front of this calculation.
+        att_force = - Human.lead_strength * np.exp(r / Human.lead_range) * vision_term * n
+
+        return att_force
+
+    def crash_effect(self, other: Human) -> np.ndarray:
+        """Stub to split people_effect in more functions"""
+        d = np.linalg.norm(self.pos - other.pos)
+        r = self.radius + other.radius - d
+        n = (self.pos - other.pos) / d
+        t = np.flip(n) * np.array([-1, 1])
+
+        # There is no crashing force if the agents are not touching, i.e. the distance
+        # between them is bigger than the sum of their radii.
+        if r < 0:
+            return np.zeros(2)
+
+        # Compute all total forces considered
+        sliding_force = Human.sfc * r * np.dot(other.velocity - self.velocity, t) * t
+        body_force = Human.bfc * r * n
+        crashing_force = sliding_force + body_force
+
+        # Consider energy loss from the crash
+        crashing_strength = np.linalg.norm(crashing_force)
+        deduction_param = 0.000001
+        energy_lost = (crashing_strength / self.mass) * deduction_param
+        # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
+        if energy_lost > 0.25:
+            energy_lost = 0.25
+        self.energy -= energy_lost
+        self.energy = np.clip(self.energy, 0, 1)
+        # print(f'crashed with another guy! : energy lost {energy_lost}')
+
+        return crashing_force
 
     def people_effect(self, other: Human) -> np.ndarray:
         """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
@@ -303,6 +358,7 @@ class Human(CommonHuman):
         obstacle_point = obstacle.get_closest_point(self.pos)
         # Compute the distance to the obstacle
         d = np.linalg.norm(self.pos - obstacle_point)
+
         # Compute a unit vector towards the obstacle
         # TODO: fix divide by zero
         n = (self.pos - obstacle_point) / d
@@ -357,7 +413,14 @@ class Human(CommonHuman):
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
         for other in neighbours:
             # Compute repulsive effect from other people
-            self.velocity += self.people_effect(other) / self.mass
+            self.velocity += self.people_repulsive_effect(other) / self.mass
+
+            # Follow the leader effect
+            if other.is_leader:
+                self.velocity += self.leader_attractive_effect(other) / self.mass
+
+            # Crash effect
+            self.velocity += self.crash_effect(other) / self.mass
 
         # Handle the repulsive effects from obstacles
         for obstacle in self.model.obstacles:
@@ -394,3 +457,4 @@ class Human(CommonHuman):
         for exit in self.model.exits:
             if exit.in_exit(self.pos):
                 self.model.remove_agent(self)
+                break

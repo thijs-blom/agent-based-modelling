@@ -39,11 +39,12 @@ height = 100
 
 # Define all walls in the system
 wall1 = Wall(np.array([50, 0]), np.array([50, 50]))
-side_wall1 = Wall(np.array([0, 2]), np.array([0, height]))
+
+side_wall1 = Wall(np.array([0, 5]), np.array([0, height]))
 side_wall2 = Wall(np.array([0, 0]), np.array([width, 0]))
 side_wall3 = Wall(np.array([width, 0]), np.array([width, height]))
-side_wall4 = Wall(np.array([0, height]), np.array([width/2 - 1, height]))
-side_wall5 = Wall(np.array([width/2 + 1, height]), np.array([width, height]))
+side_wall4 = Wall(np.array([0, height]), np.array([width/2 - 5, height]))
+side_wall5 = Wall(np.array([width/2, height]), np.array([width, height]))
 
 init_obstacles = [side_wall1, side_wall2, side_wall3, side_wall4, side_wall5, wall1]
 
@@ -87,10 +88,10 @@ model_params = {
 server = ModularServer(SocialForce, [canvas, chart0, chart3], "Escape Panic", model_params)
 
 model_reporters = {
-    "Number of Humans in Environment": lambda m: SocialForce.schedule.get_agent_count(),
+    "Number of Humans in Environment": lambda m: m.schedule.get_agent_count(),
     # "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
     # "Average Energy": lambda m: self.count_energy(m) / self.population,
-    "Average Speed": lambda m: SocialForce.count_speed(m) / SocialForce.schedule.get_agent_count() if SocialForce.schedule.get_agent_count() > 0 else 0
+    "Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
     }
 
 # batch = BatchRunner(SocialForce,

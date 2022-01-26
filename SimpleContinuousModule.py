@@ -39,7 +39,6 @@ class SimpleCanvas(VisualizationElement):
             # portrayal['w'] = 1
             # space_state.append(portrayal)
 
-
         for obj in model.obstacles:
             if isinstance(obj, Dead):
                 portrayal = self.dead_portrayal(obj)
