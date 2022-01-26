@@ -445,15 +445,19 @@ class Human(CommonHuman):
             # Crash effect
             self.velocity += self.crash_effect(other) / self.mass
 
-        # Handle the repulsive effects from obstacles
+        # # Handle the repulsive effects from obstacles
+        # for obstacle in self.model.obstacles:
+        #     # Compute repulsive effect from obstacles
+        #     if np.linalg.norm(self.pos - obstacle.get_closest_point(self.pos)) < 0.5 :
+        #         self.velocity += self.boundary_effect(obstacle) / self.mass
+
         for obstacle in self.model.obstacles:
             # Compute repulsive effect from obstacles
-            if np.linalg.norm(self.pos - obstacle.get_center()) < 0.5 :
-                self.velocity += self.boundary_effect(obstacle) / self.mass
+            self.velocity += self.boundary_effect(obstacle) / self.mass
 
-        # for exit in self.model.exits:
-        #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
-        #         self.velocity += self.leader_attractive_effect(exit) / self.mass
+        for exit in self.model.exits:
+            if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
+                self.velocity += self.leader_attractive_effect(exit) / self.mass
 
         # Compute random noise force
         self.velocity += self.panic_noise_effect()

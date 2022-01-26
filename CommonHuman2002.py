@@ -41,5 +41,5 @@ class CommonHuman(Agent):
     bfc = 120000
     sfc = 240000
     sfc_wall = 200
-    obs_strength = 500
+    obs_strength = 1000
     obs_range = 0.08
