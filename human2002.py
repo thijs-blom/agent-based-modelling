@@ -380,12 +380,12 @@ class Human(CommonHuman):
         if new_pos[0] > self.model.space.width:
             new_pos[0] = self.model.space.width - 0.00001
         elif new_pos[0] < 0:
-            new_pos[0] = 0
+            new_pos[0] = 0 + 0.00001
 
         if new_pos[1] > self.model.space.height:
             new_pos[1] = self.model.space.height - 0.00001
         elif new_pos[1] < 0:
-            new_pos[1] = 0
+            new_pos[1] = 0 + 0.00001
         self.model.space.move_agent(self, new_pos)
 
         self.timestep += 1

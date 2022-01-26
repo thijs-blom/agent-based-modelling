@@ -30,24 +30,8 @@ class CommonHuman(Agent):
         """
         super().__init__(unique_id, model)
 
-    # TODO: All the below parameters are not well defined yet !!!
-    # TODO: Check 2002 for Default relaxation parameter
-    # TODO: Check if more parameters can be fixed, or maybe varied per group of population, such as male and female
-        # self.tau = 0.5
-        # self.min_noise = 0.5
-        # self.max_noise = 1
-        # self.lead_strength = 2
-        # self.lead_range = 10
-        # self.soc_strength = 2
-        # self.soc_range = 10
-        # self.obs_strength = 5
-        # self.obs_range = 0.5
-        # self.bfc = 5
-        # self.sfc = 5
    
-# parameter from Li, M., Zhao, Y., He, L., Chen, W., & Xu, X. (2015).
-# The parameter calibration and optimization of social force model for the real-life 2013 
-# Ya’an earthquake evacuation in China. Safety science, 79, 243-253.
+# parameter from 2002
     min_noise = 0.5
     max_noise = 1
     lead_strength = 2000
