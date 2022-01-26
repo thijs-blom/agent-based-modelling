@@ -235,7 +235,7 @@ class Human(CommonHuman):
 
         return att_force
 
-    def leader_attractive_effect(self, exit: Exit) -> np.ndarray:
+    def exit_attractive_effect(self, exit: Exit) -> np.ndarray:
         """Stub to split people_effect in more functions"""
         # TODO: Check if we agree on the formulation of leading force
         # This is f^{att}_{ik} as defined in page 11. Could also use f^{att}_{ij}.
@@ -444,20 +444,26 @@ class Human(CommonHuman):
 
             # Crash effect
             self.velocity += self.crash_effect(other) / self.mass
+# Type I
 
-        # # Handle the repulsive effects from obstacles
+        # Handle the repulsive effects from obstacles
+        for obstacle in self.model.obstacles:
+            exit =  self.nearest_exit()
+            if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
+                self.velocity += self.exit_attractive_effect(exit) / self.mass
+                self.velocity += (self.boundary_effect(obstacle) / self.mass) * 0.2
+            # Compute repulsive effect from obstacles
+            else:
+                self.velocity += self.boundary_effect(obstacle) / self.mass
+
+#  Type II
         # for obstacle in self.model.obstacles:
         #     # Compute repulsive effect from obstacles
-        #     if np.linalg.norm(self.pos - obstacle.get_closest_point(self.pos)) < 0.5 :
-        #         self.velocity += self.boundary_effect(obstacle) / self.mass
+        #     self.velocity += self.boundary_effect(obstacle) / self.mass
 
-        for obstacle in self.model.obstacles:
-            # Compute repulsive effect from obstacles
-            self.velocity += self.boundary_effect(obstacle) / self.mass
-
-        for exit in self.model.exits:
-            if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
-                self.velocity += self.leader_attractive_effect(exit) / self.mass
+        # for exit in self.model.exits:
+        #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
+        #         self.velocity += self.leader_attractive_effect(exit) / self.mass
 
         # Compute random noise force
         self.velocity += self.panic_noise_effect()
