@@ -7,7 +7,7 @@ from CommonHuman2002 import CommonHuman
 from obstacle import Obstacle
 from dead import Dead
 from exit import Exit
-
+import matplotlib.pyplot as plt
 
 class Human(CommonHuman):
     """
@@ -205,7 +205,8 @@ class Human(CommonHuman):
         r = self.radius + other.radius - d
         n = (self.pos - other.pos) / d
         cosphi = np.dot(-n, self.velocity / np.linalg.norm(self.velocity))
-        vision_term = (self.lam + (1 - self.lam) * (1 + cosphi) / 2)
+        # vision_term = (self.lam + (1 - self.lam) * (1 + cosphi) / 2)
+        vision_term = 1
 
         # the social repulsive (distancing) force: eq 3 in baseline
         social_force = Human.soc_strength * np.exp(r / Human.soc_range) * vision_term * n
@@ -408,13 +409,19 @@ class Human(CommonHuman):
         # formula is given but it is optional for now
         raise NotImplementedError
 
+    # def print_forces(self, forces, new_pos):
+    #     old_pos = self.pos
+    #     v = self.velocity
+    #     # there are 3 forces: acceleration, f_soc and f_obs
+    #     plt.quiver(*)
+
+        pass
     def step(self):
         """
         Compute all forces acting on this agent, update its velocity and move.
         """
-        # Compute acceleration term of agent
-        self.velocity += self.acceleration_term()
-
+        # compute all the forces
+        all_forces = np.array([0.,0.])
         # TODO: Is this still necessary?
         # neighbours = self.model.space.get_neighbors(self.pos, 0.5, False)
 
@@ -436,13 +443,14 @@ class Human(CommonHuman):
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
         for other in neighbours:
             # Compute repulsive effect from other people
-            self.velocity += self.people_repulsive_effect(other) / self.mass
-
+            all_forces += self.people_repulsive_effect(other) / self.mass
+            print(f'agent:{self.unique_id}: repulsed by {other.unique_id} at force {self.people_repulsive_effect(other) / self.mass}')
             # Follow the leader effect
             if other.is_leader:
-                self.velocity += self.leader_attractive_effect(other) / self.mass
+                all_forces += self.leader_attractive_effect(other) / self.mass
 
             # Crash effect
+<<<<<<< Updated upstream
             self.velocity += self.crash_effect(other) / self.mass
 
         # Handle the repulsive effects from obstacles
@@ -451,21 +459,50 @@ class Human(CommonHuman):
             if np.linalg.norm(self.pos - obstacle.get_center()) < 0.5 :
                 self.velocity += self.boundary_effect(obstacle) / self.mass
 
+=======
+            all_forces += self.crash_effect(other) / self.mass
+# Type I
+
+        # # Handle the repulsive effects from obstacles
+        # for obstacle in self.model.obstacles:
+        #     exit =  self.nearest_exit()
+        #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
+        #         self.velocity += self.exit_attractive_effect(exit) / self.mass
+                # self.velocity += (self.boundary_effect(obstacle) / self.mass) * 0.2
+            # Compute repulsive effect from obstacles
+            # else:
+            #     self.velocity += self.boundary_effect(obstacle) / self.mass
+
+#  Type II
+        for obstacle in self.model.obstacles:
+            print(obstacle)
+            if type(obstacle.get_closest_point(self.pos)) == np.ndarray:
+                if np.linalg.norm(self.pos - obstacle.get_closest_point(self.pos)) < self.vision:
+                # Compute repulsive effect from obstacles
+                    all_forces += self.boundary_effect(obstacle) / self.mass
+                    print(f'agent:{self.unique_id}: repulsed by {obstacle} at force {self.boundary_effect(obstacle) / self.mass}')
+
+>>>>>>> Stashed changes
         # for exit in self.model.exits:
         #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
-        #         self.velocity += self.leader_attractive_effect(exit) / self.mass
+        #         self.velocity += self.exit_attractive_effect(exit) / self.mass
 
         # Compute random noise force
-        self.velocity += self.panic_noise_effect()
-
+        # self.velocity += self.panic_noise_effect()      
+        
+        # Compute acceleration term of agent
+        all_forces += self.acceleration_term()
+        self.velocity += all_forces
         # Update the movement, position features of the agent
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
         # so speed is impacked by the remainly energy of individual, the minimum speed is applied to ensured badly injured agent still move out
         # uncommented line 343 - 350 and comment below line if we want energy = 0 agent to be dead and become an obstacle
-        #self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
+        # self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
         self.velocity /= np.linalg.norm(self.velocity)
         self.velocity *= self.speed
         new_pos = self.pos + self.velocity
+
+        # print_forces(self,new_pos)
 
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:

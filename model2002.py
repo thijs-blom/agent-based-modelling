@@ -29,7 +29,7 @@ class SocialForce(Model):
         population: int = 100,
         width: float = 100,
         height: float = 100,
-        max_speed: float = 5,
+        max_speed: float = 100,
         vision: float = 10,
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
@@ -64,7 +64,7 @@ class SocialForce(Model):
             model_reporters={
                 "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
                 "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-                #"Average Energy": lambda m: self.count_energy() / self.population,
+                "Average Panic": lambda m: self.count_panic() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0,
                 "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
         
@@ -91,6 +91,15 @@ class SocialForce(Model):
             speed += np.linalg.norm(human.velocity)
         return speed
 
+    def count_panic(self):
+        """
+        Helper method to count trees in a given condition in a given model.
+        """
+        panics = 0
+        for human in self.schedule.agents:
+            panics += human.panic_index()
+        return panics
+
     def make_agents(self):
         """
         Create self.population agents, with random positions and starting headings.
@@ -107,7 +116,7 @@ class SocialForce(Model):
             radii = np.random.uniform(0.37,0.55)
             current_timestep = 0
             init_speed = np.random.random()
-            init_desired_speed = 2
+            init_desired_speed = 1
             relax_t = self.relaxation_time
             strategy = np.random.choice(strategy_option)
             human = Human(
