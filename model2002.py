@@ -34,7 +34,7 @@ class SocialForce(Model):
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
         exits: List[Obstacle] = None,
-        timestep: float = 0.1
+        timestep: float = 0.01
     ):
         """
         Create a new instance of the social force model.
@@ -66,9 +66,13 @@ class SocialForce(Model):
             model_reporters={
                 "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
                 "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-                #"Average Energy": lambda m: self.count_energy() / self.population,
+                "Average Panic": lambda m: self.count_panic() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0,
                 "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
+        
+          # 'Amount of death': self.caused_death(),
+        self.running = True
+        self.datacollector.collect(self)
         
           # 'Amount of death': self.caused_death(),
         self.running = True
@@ -92,7 +96,16 @@ class SocialForce(Model):
         for human in self.schedule.agents:
             speed += np.linalg.norm(human.velocity)
         return speed
-
+    
+    def count_panic(self):
+        """
+        Helper method to count trees in a given condition in a given model.
+        """
+        panics = 0
+        for human in self.schedule.agents:
+            panics += human.panic_index()
+        return panics
+    
     def make_agents(self):
         """
         Create self.population agents, with random positions and starting headings.

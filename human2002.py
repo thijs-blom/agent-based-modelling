@@ -170,8 +170,17 @@ class Human(CommonHuman):
         return sum_of_direction
 
     def panic_index(self):
-        """Compute the panic index of agent using average speed"""
-        return 0
+        """Compute the panic index of agent using average speed""" 
+        # Compute average speed into desired direction for the agent
+        if self.timestep == 0:
+            self.v_bar = self.speed
+        else:
+            # progress can be either negative and positive
+            progress_t = np.dot(self.velocity, self.desired_dir())
+            self.v_bar = (self.v_bar * (self.timestep-1) + progress_t ) / self.timestep
+
+        return 1 - self.v_bar / self.init_desired_speed
+
 
     def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
@@ -441,21 +450,23 @@ class Human(CommonHuman):
             # Crash effect
             self.f_soc += self.crash_effect(other) / self.mass
 # Type I
-        f_obs = np.array([0.,0.])
-        # Handle the repulsive effects from obstacles
-        for obstacle in self.model.obstacles:
-            exit =  self.nearest_exit()
-            if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
-                f_obs += self.exit_attractive_effect(exit) / self.mass
-                f_obs += (self.boundary_effect(obstacle) / self.mass) * 0.2
-            # Compute repulsive effect from obstacles
-            else:
-                f_obs += self.boundary_effect(obstacle) / self.mass
+        # f_obs = np.array([0.,0.])
+        # # Handle the repulsive effects from obstacles
+        # for obstacle in self.model.obstacles:
+        #     exit =  self.nearest_exit()
+        #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
+        #         f_obs += self.exit_attractive_effect(exit) / self.mass
+        #         f_obs += (self.boundary_effect(obstacle) / self.mass) * 0.2
+        #     # Compute repulsive effect from obstacles
+        #     else:
+        #         f_obs += self.boundary_effect(obstacle) / self.mass
 
 #  Type II
-        # for obstacle in self.model.obstacles:
-        #     # Compute repulsive effect from obstacles
-        #     self.velocity += self.boundary_effect(obstacle) / self.mass
+        f_obs = np.array([0.,0.])
+
+        for obstacle in self.model.obstacles:
+            # Compute repulsive effect from obstacles
+            f_obs += self.boundary_effect(obstacle) / self.mass
 
         # for exit in self.model.exits:
         #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
@@ -470,7 +481,7 @@ class Human(CommonHuman):
         # so speed is impacked by the remainly energy of individual, the minimum speed is applied to ensured badly injured agent still move out
         # uncommented line 343 - 350 and comment below line if we want energy = 0 agent to be dead and become an obstacle
         # self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
-        self.velocity /= np.linalg.norm(self.velocity)
+        self.velocity /= np.linalg.norm(self.velocity) 
         self.velocity *= self.speed
         new_pos = self.pos + (self.velocity * self.model.timestep)
 
