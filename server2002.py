@@ -105,7 +105,7 @@ model_params = {
 }
 
 # Define and launch the server
-server = ModularServer(SocialForce, [canvas, chart0, chart2, chart3], "Escape Panic", model_params)
+#server = ModularServer(SocialForce, [canvas, chart0, chart2, chart3], "Escape Panic", model_params)
 
 # # Set up all the parameters to be entered into the model
 # model_params = {
@@ -153,4 +153,4 @@ server = ModularServer(SocialForce, [canvas, chart0, chart2, chart3], "Escape Pa
 # file.write(data)
 # file.close()
 
-server.launch()
+#server.launch()
