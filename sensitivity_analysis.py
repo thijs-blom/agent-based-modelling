@@ -3,8 +3,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import csv
+from mesa.batchrunner import BatchRunner
+from exit import Exit
+from wall import Wall
+from dead import Dead
+from human2002 import Human
+# from base_human import Human
+from model2002 import SocialForce
 
-import run
+import numpy as np
+from typing import Dict
+
+from server2002 import width, height, init_obstacles, exit2
 
 #sobol
 # import SALib
@@ -17,6 +27,12 @@ parameters = {
     'bounds': [[10, 1000], [0.5, 0.1], [1, 10]]
 }
 
+parameters = {
+    'names': ['population'],
+    'bounds': [[10, 1000]]
+}
+
+
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 # replicates = 30
 # max_steps = 100
@@ -27,7 +43,7 @@ model_params = {
     "width": width,
     "height": height,
     "obstacles": init_obstacles,
-    "exits": [exit1, exit2]
+    "exits": [exit2]
 }
 
 model_reporters = {
