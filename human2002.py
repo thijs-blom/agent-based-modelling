@@ -502,6 +502,7 @@ class Human(CommonHuman):
         # Remove the agent from the model if it has reached an exit
         for exit in self.model.exits:
             if exit.in_exit(self.pos):
+                self.model.exit_times.append(self.timestep*self.model.timestep)
                 self.model.remove_agent(self)
                 break
         
