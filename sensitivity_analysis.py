@@ -17,9 +17,15 @@ from typing import Dict
 from server2002 import width, height, init_obstacles, exit2
 
 #sobol
+<<<<<<< HEAD
 # import SALib
 # from SALib.sample import saltelli
 # from SALib.analyze import sobol
+=======
+import SALib
+from SALib.sample import saltelli
+from SALib.analyze import sobol
+>>>>>>> b8215612997d8151ad085a583bd093124ffb0cc9
 
 
 # Define variables and bounds
