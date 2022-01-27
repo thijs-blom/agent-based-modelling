@@ -9,7 +9,7 @@ from wall import Wall
 from dead import Dead
 from human2002 import Human
 # from base_human import Human
-from model2002 import SocialForce
+from oneexit import OneExit
 
 import numpy as np
 from typing import Dict
@@ -23,8 +23,8 @@ from server2002 import width, height, init_obstacles, exit2
 
 # Define variables and bounds
 parameters = {
-    'names': ['population', 'relaxation_time', 'vision'],
-    'bounds': [[10, 200], [0.5, 0.1], [1, 10]]
+    'names': ['population', 'relaxation_time', 'doorsize'],
+    'bounds': [[10, 200], [0.5, 0.1], [0.6, 2.4]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
@@ -60,7 +60,7 @@ for i, var in enumerate(parameters['names']):
     if var == 'population':
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples, dtype=int)
     
-    batch = BatchRunner(SocialForce,
+    batch = BatchRunner(OneExit
                         max_steps=100,
                         iterations=1,
                         fixed_parameters=model_params,

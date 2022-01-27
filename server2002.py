@@ -8,7 +8,6 @@ from exit import Exit
 from wall import Wall
 from dead import Dead
 from human2002 import Human
-# from base_human import Human
 from model2002 import SocialForce
 
 import numpy as np
