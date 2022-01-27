@@ -33,7 +33,8 @@ class SocialForce(Model):
         vision: float = 10,
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
-        exits: List[Obstacle] = None
+        exits: List[Obstacle] = None,
+        timestep: float = 0.1
     ):
         """
         Create a new instance of the social force model.
@@ -57,6 +58,7 @@ class SocialForce(Model):
         self.make_agents()
         self.init_amount_obstacles = len(self.obstacles)
         self.ending_energy_lst = np.ones(self.population)
+        self.timestep = timestep
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 

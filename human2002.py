@@ -86,6 +86,8 @@ class Human(CommonHuman):
         # Go to the (center of) the nearest exit
         self.dest = self.nearest_exit().get_center()
 
+        self.speed = init_speed
+
 
     def desired_dir(self) -> np.ndarray:
         """ Compute the desired direction of the agent
@@ -169,20 +171,6 @@ class Human(CommonHuman):
 
     def panic_index(self):
         """Compute the panic index of agent using average speed"""
-        # Compute average speed of the neighbourhood
-        neighbourhood_speed = 0
-        neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
-        if len(neighbours) > 0:
-            for neighbour in neighbours:
-                neighbourhood_speed += np.linalg.norm(neighbour.velocity)
-            neighbourhood_speed /= len(neighbours)
-
-            agent_speed = np.linalg.norm(self.velocity)
-            # Return the panic index (eq 12)
-            if neighbourhood_speed < self.init_desired_speed:
-                return 1 - neighbourhood_speed / self.init_desired_speed
-            else:
-                return 0
         return 0
 
     def desired_speed(self):
@@ -395,7 +383,7 @@ class Human(CommonHuman):
         t = np.flip(n) * np.array([-1, 1])
 
         # eq 7 in baseline
-        obt_force = (Human.obs_strength * np.exp(self.radius - d) + Human.bfc * theta(self.radius - d)) * n \
+        obt_force = (Human.obs_strength * np.exp((self.radius - d)/Human.obs_range) + Human.bfc * theta(self.radius - d)) * n \
             - Human.sfc * theta(self.radius - d) * np.dot(self.velocity, t) * t
 
         # TODO: Check if energy should be added back in
@@ -475,7 +463,7 @@ class Human(CommonHuman):
 
         # Compute random noise force
         f_noise = self.panic_noise_effect()
-        self.velocity += f_acc + self.f_soc + f_obs + f_noise
+        self.velocity += (f_acc + self.f_soc + f_obs) * self.model.timestep
 
         # Update the movement, position features of the agent
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
@@ -484,7 +472,7 @@ class Human(CommonHuman):
         # self.speed = np.clip(self.speed * self.energy, self.min_speed, self.max_speed)
         self.velocity /= np.linalg.norm(self.velocity)
         self.velocity *= self.speed
-        new_pos = self.pos + self.velocity
+        new_pos = self.pos + (self.velocity * self.model.timestep)
 
         # if out of bounds, put at bound
         if new_pos[0] > self.model.space.width:
@@ -506,17 +494,16 @@ class Human(CommonHuman):
                 self.model.remove_agent(self)
                 break
         
-        if self.unique_id == 0:
-
-            plt.quiver(*self.pos, f_acc[0], f_acc[1], color=['r'], label='acc')
-            plt.quiver(*self.pos, self.f_soc[0], self.f_soc[1], color=['b'], label='social')
-            plt.quiver(*self.pos, f_obs[0], f_obs[1], color=['g'], label='obstable')  
-            plt.ylim(0,20)  
-            plt.xlim(0,20) 
-            plt.xlabel('width')
-            plt.ylabel('height')
-            plt.legend()
-            plt.show()
-            print("Social f:", self.f_soc)
-            print("Acceleration f:", f_acc)
-            print("Obstacle f:", f_obs)
+        # if self.unique_id == 0:
+        #     plt.quiver(*self.pos, f_acc[0], f_acc[1], color=['r'], label='acc')
+        #     plt.quiver(*self.pos, self.f_soc[0], self.f_soc[1], color=['b'], label='social')
+        #     plt.quiver(*self.pos, f_obs[0], f_obs[1], color=['g'], label='obstable')
+        #     plt.ylim(0,20)
+        #     plt.xlim(0,20)
+        #     plt.xlabel('width')
+        #     plt.ylabel('height')
+        #     plt.legend()
+        #     plt.show()
+        #     print("Social f:", self.f_soc)
+        #     print("Acceleration f:", f_acc)
+        #     print("Obstacle f:", f_obs)

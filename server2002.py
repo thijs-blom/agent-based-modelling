@@ -1,6 +1,7 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
+from mesa.visualization.ModularVisualization import VisualizationElement
 from mesa.batchrunner import BatchRunner
 
 from SimpleContinuousModule import SimpleCanvas
@@ -14,9 +15,30 @@ from model2002 import SocialForce
 import numpy as np
 from typing import Dict
 
+
+class HistogramModule(VisualizationElement):
+    package_includes = ["Chart.min.js"]
+    local_includes = ["histogram.js"]
+
+    def __init__(self, bins, canvas_height, canvas_width):
+        self.canvas_height = canvas_height
+        self.canvas_width = canvas_width
+        self.bins = bins
+        new_element = "new HistogramModule({}, {}, {})"
+        new_element = new_element.format(bins,
+                                         canvas_width,
+                                         canvas_height)
+        self.js_code = "elements.push(" + new_element + ");"
+
+    def render(self, model):
+        vals = [agent.speed for agent in model.schedule.agents]
+        hist = np.histogram(vals, bins=self.bins)[0]
+        return [int(x) for x in hist]
+
+
 # Define the dimensions of the simulation space
-width = 20
-height = 20
+width = 100
+height = 100
 
 def human_draw(agent: Human) -> Dict:
     return {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Red"}
@@ -34,6 +56,8 @@ chart0 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#AA
 chart1 = ChartModule([{"Label": "Number of Casualties", "Color": "#AA0000"}], 10, 25)
 chart2 = ChartModule([{"Label": "Average Energy", "Color": "#AA0000"}], 10, 25)
 chart3 = ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
+
+# hist1 = HistogramModule(np.arange(0, 5, 0.1), height, width)
 
 # Define all walls in the system
 side_wall1 = Wall(np.array([0, 0]), np.array([0, height]))
