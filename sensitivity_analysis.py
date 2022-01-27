@@ -7,7 +7,7 @@ import csv
 #sobol
 import SALib
 from SALib.sample import saltelli
-from SALib.analyze import sobolconda install SALib
+from SALib.analyze import sobol
 
 import run
 
