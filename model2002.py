@@ -34,7 +34,7 @@ class SocialForce(Model):
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
         exits: List[Obstacle] = None,
-        timestep: float = 0.1
+        timestep: float = 0.01
     ):
         """
         Create a new instance of the social force model.
@@ -106,7 +106,7 @@ class SocialForce(Model):
             velocity = (np.random.random(2)-0.5) 
             # don't know what is mass yet
             mass = np.random.uniform(50, 80)
-            radii = np.random.uniform(0.37,0.55)
+            radius = np.random.uniform(0.37,0.55)/2
             current_timestep = 0
             init_speed = np.random.random()
             init_desired_speed = 2
@@ -120,7 +120,7 @@ class SocialForce(Model):
                 self.max_speed,
                 self.vision,
                 mass,
-                radii,
+                radius,
                 lam,
                 current_timestep,
                 init_speed,
