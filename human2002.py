@@ -117,9 +117,9 @@ class Human(CommonHuman):
             # if exit is within 50 meters, the destination is the nearest exit
             # otherwise the destination is a mixed a nearest exit and the neighbors
             dir = neighbor_dir
-            if np.linalg.norm(self.pos - self.dest) > 50:
+            if np.linalg.norm(self.pos - self.dest) > self.vision:
                 rand = np.random.random()
-                if rand > 0.8:
+                if rand > 0.5:
                     dir = neighbor_dir
                 else:
                     dir = dest_dir

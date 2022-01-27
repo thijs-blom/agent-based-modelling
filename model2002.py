@@ -34,7 +34,9 @@ class SocialForce(Model):
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
         exits: List[Obstacle] = None,
-        timestep: float = 0.01
+        timestep: float = 0.02,
+        prob_nearest: float = 0.5,
+        lst_strategy: list = ['nearest exit', 'hesitator']
     ):
         """
         Create a new instance of the social force model.
@@ -55,10 +57,11 @@ class SocialForce(Model):
         self.obstacles = obstacles if obstacles else []
         self.exits = exits if exits else []
         self.max_speed = max_speed
-        self.make_agents()
+        self.make_agents(lst_strategy, prob_nearest)
         self.init_amount_obstacles = len(self.obstacles)
         self.ending_energy_lst = np.ones(self.population)
         self.timestep = timestep
+
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 
@@ -106,11 +109,19 @@ class SocialForce(Model):
             panics += human.panic_index()
         return panics
     
-    def make_agents(self):
+    @staticmethod
+    def random_select_strategy(strategy_option, prob_nearest):
+        """Randomly select the population strategy based on some probabilities"""
+        rand_num = np.random.random()
+        if rand_num <= prob_nearest:
+            return strategy_option[0]
+        else:
+            return strategy_option[1]
+
+    def make_agents(self, strategy_option,prob_nearest):
         """
         Create self.population agents, with random positions and starting headings.
         """
-        strategy_option = ['nearest exit', 'follow the crowd', 'least crowded exit']
         for i in range(self.population):
             x = self.random.random() * self.space.x_max
             y = self.random.random() * self.space.y_max
@@ -124,7 +135,7 @@ class SocialForce(Model):
             init_speed = np.random.random()
             init_desired_speed = 2
             relax_t = self.relaxation_time
-            strategy = np.random.choice(strategy_option)
+            strategy = self.random_select_strategy(strategy_option, prob_nearest)
             human = Human(
                 i,
                 self,
@@ -140,7 +151,7 @@ class SocialForce(Model):
                 init_desired_speed,
                 False,
                 relax_t,
-                'nearest exit'
+                strategy
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)
