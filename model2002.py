@@ -30,11 +30,13 @@ class SocialForce(Model):
         width: float = 100,
         height: float = 100,
         max_speed: float = 5,
-        vision: float = 10,
+        vision: float = 1,
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
         exits: List[Obstacle] = None,
-        timestep: float = 0.01
+        timestep: float = 0.01,
+        prob_nearest: float = 0.5,
+        lst_strategy: list = ['nearest exit', 'hesitator']
     ):
         """
         Create a new instance of the social force model.
@@ -55,10 +57,13 @@ class SocialForce(Model):
         self.obstacles = obstacles if obstacles else []
         self.exits = exits if exits else []
         self.max_speed = max_speed
-        self.make_agents()
+        self.make_agents(lst_strategy, prob_nearest)
         self.init_amount_obstacles = len(self.obstacles)
         self.ending_energy_lst = np.ones(self.population)
         self.timestep = timestep
+        self.exit_times = [0, 1, 2]
+        self.evacuation_time = float("inf")
+
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 
@@ -66,10 +71,14 @@ class SocialForce(Model):
             model_reporters={
                 "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
                 "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-                #"Average Energy": lambda m: self.count_energy() / self.population,
+                "Average Panic": lambda m: self.count_panic() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0,
                 "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
         
+          # 'Amount of death': self.caused_death(),
+        self.running = True
+        self.datacollector.collect(self)
+
           # 'Amount of death': self.caused_death(),
         self.running = True
         self.datacollector.collect(self)
@@ -93,11 +102,28 @@ class SocialForce(Model):
             speed += np.linalg.norm(human.velocity)
         return speed
 
-    def make_agents(self):
+    def count_panic(self):
+        """
+        Helper method to count trees in a given condition in a given model.
+        """
+        panics = 0
+        for human in self.schedule.agents:
+            panics += human.panic_index()
+        return panics
+
+    @staticmethod
+    def random_select_strategy(strategy_option, prob_nearest):
+        """Randomly select the population strategy based on some probabilities"""
+        rand_num = np.random.random()
+        if rand_num <= prob_nearest:
+            return strategy_option[0]
+        else:
+            return strategy_option[1]
+
+    def make_agents(self, strategy_option,prob_nearest):
         """
         Create self.population agents, with random positions and starting headings.
         """
-        strategy_option = ['nearest exit', 'follow the crowd', 'least crowded exit']
         for i in range(self.population):
             x = self.random.random() * self.space.x_max
             y = self.random.random() * self.space.y_max
@@ -106,12 +132,12 @@ class SocialForce(Model):
             velocity = (np.random.random(2)-0.5) 
             # don't know what is mass yet
             mass = np.random.uniform(50, 80)
-            radii = np.random.uniform(0.37,0.55)
+            radius = np.random.uniform(0.37,0.55)/2
             current_timestep = 0
             init_speed = np.random.random()
             init_desired_speed = 2
             relax_t = self.relaxation_time
-            strategy = np.random.choice(strategy_option)
+            strategy = self.random_select_strategy(strategy_option, prob_nearest)
             human = Human(
                 i,
                 self,
@@ -120,14 +146,14 @@ class SocialForce(Model):
                 self.max_speed,
                 self.vision,
                 mass,
-                radii,
+                radius,
                 lam,
                 current_timestep,
                 init_speed,
                 init_desired_speed,
                 False,
                 relax_t,
-                'nearest exit'
+                strategy
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)
@@ -140,8 +166,8 @@ class SocialForce(Model):
         self.datacollector.collect(self)
 
         if self.schedule.get_agent_count() == 0:
+            self.evacuation_time = self.exit_times[-1]
             self.running = False
-            print(sum(self.ending_energy_lst)/self.population)
 
     def remove_agent(self, agent):
         """

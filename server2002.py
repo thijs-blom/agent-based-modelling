@@ -41,7 +41,7 @@ width = 20
 height = 20
 
 def human_draw(agent: Human) -> Dict:
-    return {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Red"}
+    return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Red"}
 
 def wall_draw(wall: Wall) -> Dict:
     return {"Shape": "line", "w": 5, "Color": "Black"}
@@ -54,7 +54,7 @@ def dead_draw(dead: Dead) -> Dict:
 canvas = SimpleCanvas(human_draw, wall_draw, dead_draw, canvas_width=500, canvas_height=500)
 chart0 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#AA0000"}], 10, 25)
 chart1 = ChartModule([{"Label": "Number of Casualties", "Color": "#AA0000"}], 10, 25)
-chart2 = ChartModule([{"Label": "Average Energy", "Color": "#AA0000"}], 10, 25)
+chart2 = ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}], 10, 25)
 chart3 = ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
 
 # hist1 = HistogramModule(np.arange(0, 5, 0.1), height, width)
@@ -105,7 +105,7 @@ model_params = {
 }
 
 # Define and launch the server
-server = ModularServer(SocialForce, [canvas, chart0, chart3], "Escape Panic", model_params)
+#server = ModularServer(SocialForce, [canvas, chart0, chart2, chart3], "Escape Panic", model_params)
 
 # # Set up all the parameters to be entered into the model
 # model_params = {
@@ -153,4 +153,4 @@ server = ModularServer(SocialForce, [canvas, chart0, chart3], "Escape Panic", mo
 # file.write(data)
 # file.close()
 
-server.launch()
+#server.launch()

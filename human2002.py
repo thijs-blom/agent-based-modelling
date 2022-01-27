@@ -117,9 +117,9 @@ class Human(CommonHuman):
             # if exit is within 50 meters, the destination is the nearest exit
             # otherwise the destination is a mixed a nearest exit and the neighbors
             dir = neighbor_dir
-            if np.linalg.norm(self.pos - self.dest) > 50:
+            if np.linalg.norm(self.pos - self.dest) > self.vision:
                 rand = np.random.random()
-                if rand > 0.8:
+                if rand > 0.5:
                     dir = neighbor_dir
                 else:
                     dir = dest_dir
@@ -171,7 +171,16 @@ class Human(CommonHuman):
 
     def panic_index(self):
         """Compute the panic index of agent using average speed"""
-        return 0
+        # Compute average speed into desired direction for the agent
+        if self.timestep == 0:
+            self.v_bar = self.speed
+        else:
+            # progress can be either negative and positive
+            progress_t = np.dot(self.velocity, self.desired_dir())
+            self.v_bar = (self.v_bar * (self.timestep-1) + progress_t ) / self.timestep
+
+        return 1 - self.v_bar / self.init_desired_speed
+
 
     def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
@@ -422,11 +431,6 @@ class Human(CommonHuman):
         for obstacle in self.model.obstacles:
             f_obs = self.boundary_effect(obstacle) / self.mass
 
-#  Type II
-        # for obstacle in self.model.obstacles:
-        #     # Compute repulsive effect from obstacles
-        #     self.velocity += self.boundary_effect(obstacle) / self.mass
-
         # for exit in self.model.exits:
         #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
         #         self.velocity += self.leader_attractive_effect(exit) / self.mass
@@ -461,6 +465,7 @@ class Human(CommonHuman):
         # Remove the agent from the model if it has reached an exit
         for exit in self.model.exits:
             if exit.in_exit(self.pos):
+                self.model.exit_times.append(self.timestep*self.model.timestep)
                 self.model.remove_agent(self)
                 break
         

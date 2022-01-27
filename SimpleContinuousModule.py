@@ -25,10 +25,11 @@ class SimpleCanvas(VisualizationElement):
     def render(self, model):
         space_state = []
         for obj in model.schedule.agents:
-            if obj.unique_id == 0:
-                portrayal = {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Blue"}
+            if obj.strategy != 'nearest exit':
+                portrayal = {"Shape": "circle", "r": obj.radius * (self.canvas_width / model.space.x_max), "Filled": "true", "Color": "Blue"}
             else:
                 portrayal = self.agent_portrayal(obj)
+                portrayal["r"] = obj.radius * (self.canvas_width / model.space.x_max)
             x, y = obj.pos
             x1 = x / model.space.x_max
             y1 = y / model.space.y_max
