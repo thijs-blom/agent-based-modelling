@@ -59,6 +59,7 @@ class SocialForce(Model):
         self.init_amount_obstacles = len(self.obstacles)
         self.ending_energy_lst = np.ones(self.population)
         self.timestep = timestep
+        self.exit_times = []
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 

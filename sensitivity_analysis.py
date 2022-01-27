@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #sobol
-from SALib.sample import saltelli
-from SALib.analyze import sobol
+# import SALib
+# from SALib.sample import saltelli
+# from SALib.analyze import sobol
 
 import run
 
@@ -28,10 +29,11 @@ model_params = {
 }
 
 model_reporters = {
-    "Number of Humans in Environment": lambda m: m.schedule.get_agent_count(),
+    #"Number of Humans in Environment": lambda m: m.schedule.get_agent_count(),
     # "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
     # "Average Energy": lambda m: self.count_energy(m) / self.population,
-    "Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
+    #"Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
+    "Exit times": lambda m: m.exit_times
     }
 
 data = {}
