@@ -30,7 +30,7 @@ class SocialForce(Model):
         width: float = 100,
         height: float = 100,
         max_speed: float = 5,
-        vision: float = 10,
+        vision: float = 1,
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
         exits: List[Obstacle] = None,
@@ -61,7 +61,8 @@ class SocialForce(Model):
         self.init_amount_obstacles = len(self.obstacles)
         self.ending_energy_lst = np.ones(self.population)
         self.timestep = timestep
-        self.exit_times = []
+        self.exit_times = [0, 1, 2]
+        self.evacuation_time = float("inf")
 
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
@@ -165,8 +166,8 @@ class SocialForce(Model):
         self.datacollector.collect(self)
 
         if self.schedule.get_agent_count() == 0:
+            self.evacuation_time = self.exit_times[-1]
             self.running = False
-            print(sum(self.ending_energy_lst)/self.population)
 
     def remove_agent(self, agent):
         """
