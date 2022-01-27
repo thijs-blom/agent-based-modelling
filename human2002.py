@@ -192,10 +192,10 @@ class Human(CommonHuman):
         """Compute the acceleration Term of agent"""
         return (self.desired_speed() * self.desired_dir() - self.velocity) / self.tau
 
-    def people_repulsive_effect(self, other: Human) -> np.ndarray:
+    def people_repulsive_effect(self, other: Human, d=None) -> np.ndarray:
         """Stub to split people_effect in more functions"""
         # Define some variables used in the equation defining the force
-        d = np.linalg.norm(self.pos - other.pos)
+        d = d if d else np.linalg.norm(self.pos - other.pos)
         r = self.radius + other.radius - d
         n = (self.pos - other.pos) / d
         cosphi = np.dot(-n, self.velocity / np.linalg.norm(self.velocity))
@@ -206,13 +206,13 @@ class Human(CommonHuman):
 
         return social_force
 
-    def leader_attractive_effect(self, leader: Human) -> np.ndarray:
+    def leader_attractive_effect(self, leader: Human, d=None) -> np.ndarray:
         """Stub to split people_effect in more functions"""
         # TODO: Check if we agree on the formulation of leading force
         # This is f^{att}_{ik} as defined in page 11. Could also use f^{att}_{ij}.
 
         # Define some variables used in the equation defining the force
-        d = np.linalg.norm(self.pos - leader.pos)
+        d = d if d else np.linalg.norm(self.pos - leader.pos)
         r = self.radius + leader.radius - d
         n = (self.pos - leader.pos) / d
         cosphi = np.dot(-n, self.velocity / np.linalg.norm(self.velocity))
@@ -229,32 +229,9 @@ class Human(CommonHuman):
 
         return att_force
 
-    def exit_attractive_effect(self, exit: Exit) -> np.ndarray:
+    def crash_effect(self, other: Human, d=None) -> np.ndarray:
         """Stub to split people_effect in more functions"""
-        # TODO: Check if we agree on the formulation of leading force
-        # This is f^{att}_{ik} as defined in page 11. Could also use f^{att}_{ij}.
-
-        # Define some variables used in the equation defining the force
-        d = np.linalg.norm(self.pos - exit.get_center())
-        r = self.radius 
-        n = (self.pos - exit.get_center()) / d
-        cosphi = np.dot(-n, self.velocity / np.linalg.norm(self.velocity))
-        vision_term = (self.lam + (1 - self.lam) * (1 + cosphi) / 2)
-
-        # att_force is not explicitly given but hints of design is provided on page 11, paragraph 2
-        # lead_strength is provided
-        # for attraction force of leader we need to revert the direction
-        # such that n_ki points from the agent i to the leader
-
-        # TODO: According to the paper, the constant A_{ik} is usually small, negative and time-dependent.
-        # Since this constant is positive in our model, a minus has been added in front of this calculation.
-        exit_att_force = - Human.lead_strength * np.exp(r / Human.lead_range) * vision_term * n
-
-        return exit_att_force
-
-    def crash_effect(self, other: Human) -> np.ndarray:
-        """Stub to split people_effect in more functions"""
-        d = np.linalg.norm(self.pos - other.pos)
+        d = d if d else np.linalg.norm(self.pos - other.pos)
         r = self.radius + other.radius - d
         n = (self.pos - other.pos) / d
         t = np.flip(n) * np.array([-1, 1])
@@ -441,16 +418,9 @@ class Human(CommonHuman):
             # Crash effect
             self.f_soc += self.crash_effect(other) / self.mass
 # Type I
-        f_obs = np.array([0.,0.])
         # Handle the repulsive effects from obstacles
         for obstacle in self.model.obstacles:
-            exit =  self.nearest_exit()
-            if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
-                f_obs += self.exit_attractive_effect(exit) / self.mass
-                f_obs += (self.boundary_effect(obstacle) / self.mass) * 0.2
-            # Compute repulsive effect from obstacles
-            else:
-                f_obs += self.boundary_effect(obstacle) / self.mass
+            f_obs = self.boundary_effect(obstacle) / self.mass
 
 #  Type II
         # for obstacle in self.model.obstacles:

@@ -34,7 +34,7 @@ class SocialForce(Model):
         relaxation_time: float = 1,
         obstacles: List[Obstacle] = None,
         exits: List[Obstacle] = None,
-        timestep: float = 0.1
+        timestep: float = 0.01
     ):
         """
         Create a new instance of the social force model.

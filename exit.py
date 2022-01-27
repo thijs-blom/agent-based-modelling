@@ -17,8 +17,8 @@ class Exit:
         to_left = np.linalg.norm(pos - self.left)
         to_right = np.linalg.norm(pos - self.right)
         width = np.linalg.norm(self.left - self.right)
-        return to_left + to_right - width < 1e-3
+        return to_left + to_right - width < .1
 
-    def get_random_focus(self, agent: np.ndarray) -> np.ndarray:
+    def get_random_focus(self) -> np.ndarray:
         """Compute the random focus point of the agent to the given exit"""
         return self.left + np.random.random() * (self.right - self.left)
