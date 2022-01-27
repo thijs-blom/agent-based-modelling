@@ -37,11 +37,11 @@ class HistogramModule(VisualizationElement):
 
 
 # Define the dimensions of the simulation space
-width = 100
-height = 100
+width = 20
+height = 20
 
 def human_draw(agent: Human) -> Dict:
-    return {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Red"}
+    return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Red"}
 
 def wall_draw(wall: Wall) -> Dict:
     return {"Shape": "line", "w": 5, "Color": "Black"}

@@ -259,7 +259,7 @@ class Human(CommonHuman):
         # Since this constant is positive in our model, a minus has been added in front of this calculation.
         exit_att_force = - Human.lead_strength * np.exp(r / Human.lead_range) * vision_term * n
 
-        return exit_att_force
+        return 0 #exit_att_force
 
     def crash_effect(self, other: Human) -> np.ndarray:
         """Stub to split people_effect in more functions"""
