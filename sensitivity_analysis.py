@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 import csv
 
-#sobol
-import SALib
-from SALib.sample import saltelli
-from SALib.analyze import sobol
-
 import run
+
+#sobol
+# import SALib
+# from SALib.sample import saltelli
+# from SALib.analyze import sobol
 
 # Define variables and bounds
 parameters = {
