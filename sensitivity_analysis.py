@@ -24,14 +24,8 @@ from server2002 import width, height, init_obstacles, exit2
 # Define variables and bounds
 parameters = {
     'names': ['population', 'relaxation_time', 'vision'],
-    'bounds': [[10, 1000], [0.5, 0.1], [1, 10]]
+    'bounds': [[10, 200], [0.5, 0.1], [1, 10]]
 }
-
-parameters = {
-    'names': ['population'],
-    'bounds': [[10, 1000]]
-}
-
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 # replicates = 30
@@ -66,7 +60,7 @@ for i, var in enumerate(parameters['names']):
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples, dtype=int)
     
     batch = BatchRunner(SocialForce,
-                        max_steps=10,
+                        max_steps=100,
                         iterations=1,
                         fixed_parameters=model_params,
                         variable_parameters={var: samples},
@@ -75,7 +69,7 @@ for i, var in enumerate(parameters['names']):
     batch.run_all()
 
     data[var] = batch.get_model_vars_dataframe()
-print(data)
+# print(data)
 # file = open("test.csv", "w")
 # file.write(data)
 # file.close()
