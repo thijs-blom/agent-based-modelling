@@ -1,10 +1,13 @@
 # OFAT
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import csv
 
 #sobol
+import SALib
 from SALib.sample import saltelli
-from SALib.analyze import sobol
+from SALib.analyze import sobolconda install SALib
 
 import run
 
@@ -15,8 +18,8 @@ parameters = {
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-replicates = 30
-max_steps = 100
+# replicates = 30
+# max_steps = 100
 distinct_samples = 2
 
 # Set up all the parameters to be entered into the model
@@ -55,6 +58,8 @@ for i, var in enumerate(parameters['names']):
     batch.run_all()
 
     data[var] = batch.get_model_vars_dataframe()
-file = open("test.txt", "w")
-file.write(data)
-file.close()
+print(data)
+# file = open("test.csv", "w")
+# file.write(data)
+# file.close()
+
