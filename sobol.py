@@ -13,8 +13,7 @@ from model2002 import SocialForce
 import numpy as np
 from typing import Dict
 
-from server2002 import width, height, init_obstacles, exit2
-
+from oneexit import OneExit
 #sobol
 import SALib
 from SALib.sample import saltelli
@@ -34,7 +33,7 @@ distinct_samples = 10
 param_values = saltelli.sample(parameters, distinct_samples)
 
 # READ NOTE BELOW CODE
-batch = BatchRunner(SocialForce, 
+batch = BatchRunner(OneExit, 
                     max_steps=max_steps,
                     variable_parameters={name:[] for name in parameters['names']},
                     model_reporters=model_reporters)
