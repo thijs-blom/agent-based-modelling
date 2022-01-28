@@ -20,7 +20,7 @@ class OneExit(SocialForce):
         super().__init__(population, width, height, max_speed, vision, relaxation_time, [], [], timestep)
 
         # Define walls
-        self.walls = [
+        self.obstacles = [
             Wall(np.array([0, 0]), np.array([0, height])),
             Wall(np.array([0, 0]), np.array([width, 0])),
             Wall(np.array([width, 0]), np.array([width, height])),
@@ -30,3 +30,4 @@ class OneExit(SocialForce):
 
         # Define exit
         self.exits = [Exit(np.array([width / 2 - door_size / 2, height]), np.array([width / 2 + door_size / 2, height]))]
+        

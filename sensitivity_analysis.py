@@ -4,17 +4,17 @@ import numpy as np
 import pandas as pd
 import csv
 from mesa.batchrunner import BatchRunner
-from exit import Exit
-from wall import Wall
-from dead import Dead
-from human2002 import Human
+# from exit import Exit
+# from wall import Wall
+# from dead import Dead
+# from human2002 import Human
 # from base_human import Human
 from oneexit import OneExit
 
 import numpy as np
 from typing import Dict
 
-from server2002 import width, height, init_obstacles, exit2
+# from server2002 import width, height
 
 #sobol
 # import SALib
@@ -23,20 +23,22 @@ from server2002 import width, height, init_obstacles, exit2
 
 # Define variables and bounds
 parameters = {
-    'names': ['population', 'relaxation_time', 'doorsize'],
+    'names': ['population', 'relaxation_time', 'door_size'],
     'bounds': [[10, 200], [0.5, 0.1], [0.6, 2.4]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-# replicates = 30
-# max_steps = 100
-distinct_samples = 2
+replicates = 2
+max_steps = 10
+distinct_samples = 4
 
 # Set up all the parameters to be entered into the model
 model_params = {
-    "width": width,
-    "height": height,
-    "vision": 1
+    "width": 20,
+    "height": 20,
+    "vision": 1,
+    "max_speed": 5,
+    "timestep": 0.01
 }
 
 model_reporters = {
@@ -60,9 +62,10 @@ for i, var in enumerate(parameters['names']):
     if var == 'population':
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples, dtype=int)
     
-    batch = BatchRunner(OneExit
-                        max_steps=100,
-                        iterations=1,
+
+    batch = BatchRunner(OneExit,
+                        max_steps=max_steps,
+                        iterations=replicates,
                         fixed_parameters=model_params,
                         variable_parameters={var: samples},
                         model_reporters= model_reporters,
@@ -71,7 +74,9 @@ for i, var in enumerate(parameters['names']):
     file = file.append(batch.get_model_vars_dataframe())
     data[var] = batch.get_model_vars_dataframe()
 
-file.to_csv("test.csv")
+print(data)
+
+# file.to_csv(f"OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
 def plot_param_var_conf(ax, df, var, param, i):
     """
@@ -113,3 +118,5 @@ def plot_all_vars(df, params):
 for params in ('Exit Times', 'Evacuation Time'):
     plot_all_vars(data, params)
     plt.show()
+
+file.to_csv(f"SA_Data\OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")

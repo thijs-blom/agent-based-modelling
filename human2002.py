@@ -1,5 +1,6 @@
 # Python imports
 from __future__ import annotations
+from logging import raiseExceptions
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -84,7 +85,7 @@ class Human(CommonHuman):
         self.tau = 1 / relax_t
         self.strategy = strategy
         # Go to the (center of) the nearest exit
-        self.dest = self.nearest_exit().get_center()
+        # self.dest = self.nearest_exit().get_center()
 
         self.speed = init_speed
 
@@ -428,8 +429,9 @@ class Human(CommonHuman):
             self.f_soc += self.crash_effect(other) / self.mass
 # Type I
         # Handle the repulsive effects from obstacles
+        f_obs = np.array([0.,0.])
         for obstacle in self.model.obstacles:
-            f_obs = self.boundary_effect(obstacle) / self.mass
+            f_obs += self.boundary_effect(obstacle) / self.mass
 
         # for exit in self.model.exits:
         #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
@@ -437,7 +439,7 @@ class Human(CommonHuman):
 
         # Compute random noise force
         f_noise = self.panic_noise_effect()
-        self.velocity += (f_acc + self.f_soc + f_obs) * self.model.timestep
+        self.velocity += (f_acc + self.f_soc + f_obs + f_noise) * self.model.timestep
 
         # Update the movement, position features of the agent
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
