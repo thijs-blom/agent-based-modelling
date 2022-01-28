@@ -2,24 +2,25 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import csv
+from tqdm import tqdm
+from itertools import combinations
+
+# import csv
 from mesa.batchrunner import BatchRunner
-# from exit import Exit
-# from wall import Wall
-# from dead import Dead
-# from human2002 import Human
-# from model2002 import SocialForce
 
 import numpy as np
 from typing import Dict
 
 from oneexit import OneExit
-from server2002 import width, height
 
 #sobol
 import SALib
 from SALib.sample import saltelli
 from SALib.analyze import sobol
+
+# TODO: calc_second_order = True or False ?? 
+# Should we only consider first and total like what's done in slides,
+# or should we also include second order like what's done in notebook?
 
 # Define variables and bounds
 # problem = {
@@ -35,8 +36,8 @@ problem = {
 }
 
 fixed_model_params = {
-    "width": width,
-    "height": height,
+    "width": 20,
+    "height": 20,
     "population": 100,
     "door_size": 2,
     "time_step": 0.01,
@@ -44,37 +45,36 @@ fixed_model_params = {
 }
 
 model_reporters = {
-    "Exit Times": lambda m: np.mean(m.exit_times),
-    "Evacuation Time": lambda m: m.evacuation_time,
+    "Exit Times": lambda m: np.mean(m.exit_times)
     }
 
-replicates = 10
-max_steps = 10
+replicates = 1
+max_steps = 300
 distinct_samples = 2
 # distinct_samples = 500 -> actual sample size
 
 
 # We get all our samples here
 param_values = saltelli.sample(problem, distinct_samples, calc_second_order = False )
-print(len(param_values))
+# print(len(param_values))
 
 # READ NOTE BELOW CODE
 batch = BatchRunner(OneExit, 
                     max_steps=max_steps,
                     variable_parameters={name:[] for name in problem['names']},
-                    fixed_parameters=fixed_model_params,
+                    # fixed_parameters=fixed_model_params,
                     model_reporters=model_reporters)
 
 count = 0
 data = pd.DataFrame(index=range(replicates*len(param_values)), 
                                 columns=['max_speed','vision'])
-data['Run'], data['Exit times'], data['Evacuation Time'] = None, None, None
+data['Run'], data['Exit times'] = None, None
 
-for i in range(replicates):
-    for vals in param_values: 
+for i in tqdm(range(replicates)):
+    for vals in tqdm(param_values): 
         # Change parameters that should be integers
         vals = list(vals)
-        # vals[2] = int(vals[2])
+
         # Transform to dict with parameter names and their values
         variable_parameters = {}
         for name, val in zip(problem['names'], vals):
@@ -83,20 +83,64 @@ for i in range(replicates):
         batch.run_iteration(variable_parameters, tuple(vals), count)
         iteration_data = batch.get_model_vars_dataframe().iloc[count]
         iteration_data['Run'] = count # Don't know what causes this, but iteration number is not correctly filled
-        # data.iloc[count, 0:5] = vals
-        # data.iloc[count, 5:8] = iteration_data
-        data.iloc[count, 0:2] = vals
-        data.iloc[count, 2:5] = iteration_data
+
+        data.iloc[count, 0:2] = vals # record paramater values
+        # record runs # record measurement(s)
+        data.iloc[count, 2:4] = iteration_data['Run'],iteration_data['Exit Times']
+
         count += 1
 
-        print(f'{count / (len(param_values) * (replicates)) * 100:.2f}% done')
+        # print(f'{count / (len(param_values) * (replicates)) * 100:.2f}% done')
 
+print(data)
 # ['max_speed','vision','soc_strength','obs_strength','obs_range']
 
-Si_max_speed = sobol.analyze(problem, data['max_speed'].values, print_to_console=True)
-Si_vision = sobol.analyze(problem, data['vision'].values, print_to_console=True)
-# Si_soc_strength = sobol.analyze(problem, data['soc_strength'].values, print_to_console=True)
-# Si_obs_strength = sobol.analyze(problem, data['obs_strength'].values, print_to_console=True)
-# Si_obs_range = sobol.analyze(problem, data['obs_range'].values, print_to_console=True)
-print(Si_max_speed)
-print(Si_vision)
+Si_exit_times = sobol.analyze(problem, data['Exit times'].values, calc_second_order=True, print_to_console=False)
+
+print(Si_exit_times)
+
+def plot_index(s, params, i, title=''):
+    """
+    Creates a plot for Sobol sensitivity analysis that shows the contributions
+    of each parameter to the global sensitivity.
+
+    Args:
+        s (dict): dictionary {'S#': dict, 'S#_conf': dict} of dicts that hold
+            the values for a set of parameters
+        params (list): the parameters taken from s
+        i (str): string that indicates what order the sensitivity is.
+        title (str): title for the plot
+    """
+
+    if i == '2':
+        p = len(params)
+        params = list(combinations(params, 2))
+        indices = s['S' + i].reshape((p ** 2))
+        indices = indices[~np.isnan(indices)]
+        errors = s['S' + i + '_conf'].reshape((p ** 2))
+        errors = errors[~np.isnan(errors)]
+    else:
+        indices = s['S' + i]
+        errors = s['S' + i + '_conf']
+        plt.figure()
+
+    l = len(indices)
+
+    plt.title(title)
+    plt.ylim([-0.2, len(indices) - 1 + 0.2])
+    plt.yticks(range(l), params)
+    plt.errorbar(indices, range(l), xerr=errors, linestyle='None', marker='o')
+    plt.axvline(0, c='k')
+
+for Si in (Si_exit_times):
+    # First order
+    plot_index(Si, problem['names'], '1', 'First order sensitivity')
+    plt.show()
+
+    # # Second order
+    # plot_index(Si, problem['names'], '2', 'Second order sensitivity')
+    # plt.show()
+
+    # Total order
+    plot_index(Si, problem['names'], 'T', 'Total order sensitivity')
+    plt.show()
