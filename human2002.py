@@ -171,36 +171,44 @@ class Human(CommonHuman):
         # TODO: check if it is desirable that the velocity may not be normalized if there are no neighbours
         return sum_of_direction
 
-    def panic_index(self):
+    def panic_index(self, desired_dir: np.ndarray = None):
         """Compute the panic index of agent using average speed"""
         # Compute average speed into desired direction for the agent
         if self.timestep == 0:
             self.v_bar = self.speed
         else:
             # progress can be either negative and positive
-            progress_t = np.dot(self.velocity, self.desired_dir())
+            if desired_dir is None:
+                desired_dir = self.desired_dir()
+            progress_t = np.dot(self.velocity, desired_dir)
             self.v_bar = (self.v_bar * (self.timestep-1) + progress_t) / self.timestep
 
         return 1 - self.v_bar / self.init_desired_speed
 
-    def desired_speed(self):
+    def desired_speed(self, panic_index: float = None):
         """ Compute the current desired speed of agent : v0_i(t)"""
         # eq 11 of baseline paper
-        n = self.panic_index()
-        return (1-n) * self.init_desired_speed + n * self.max_speed
+        if panic_index is None:
+            panic_index = self.panic_index()
+        return (1-panic_index) * self.init_desired_speed + panic_index * self.max_speed
 
-    def panic_noise_effect(self):
+    def panic_noise_effect(self, panic_index: float = None):
         """Compute the force of noise scaled by individual's panic level"""
         # scale of noise : eq 10 from baseline paper
-        panic_index = self.panic_index()
+        if panic_index is None:
+            panic_index = self.panic_index()
         noise_scale = (1 - panic_index) * Human.min_noise + panic_index * Human.max_noise
         # the random force is assumed to be random normal with scale = noise scale
         # return np.random.normal(loc=0.0, scale=noise_scale)
         return 0
 
-    def acceleration_term(self) -> np.ndarray:
+    def acceleration_term(self, desired_dir: np.ndarray = None, panic_index: float = None) -> np.ndarray:
         """Compute the acceleration Term of agent"""
-        return (self.desired_speed() * self.desired_dir() - self.velocity) / self.tau
+        if desired_dir is None:
+            desired_dir = self.desired_dir()
+        if panic_index is None:
+            panic_index = self.panic_index(desired_dir)
+        return (self.desired_speed(panic_index) * desired_dir - self.velocity) / self.tau
 
     def people_repulsive_effect(self, other: Human, d=None) -> np.ndarray:
         """Stub to split people_effect in more functions"""
@@ -269,7 +277,7 @@ class Human(CommonHuman):
 
         return crashing_force
 
-    def boundary_effect(self, obstacle: Obstacle) -> np.ndarray:
+    def boundary_effect(self, obstacle: Obstacle, max_dist: float = None) -> np.ndarray:
         """Repulsive effect from an obstacle"""
 
         def theta(z: float) -> float:
@@ -280,6 +288,10 @@ class Human(CommonHuman):
         obstacle_point = obstacle.get_closest_point(self.pos)
         # Compute the distance to the obstacle
         d = np.linalg.norm(self.pos - obstacle_point)
+
+        # Ignore calculation if wall is far anyways
+        if max_dist is not None and d > max_dist:
+            return np.zeros(2)
 
         # Compute a unit vector towards the obstacle
         # TODO: fix divide by zero
@@ -311,8 +323,11 @@ class Human(CommonHuman):
         """
         Compute all forces acting on this agent, update its velocity and move.
         """
+        desired_dir = self.desired_dir()
+        panic_index = self.panic_index(desired_dir)
+
         # Compute acceleration term of agent
-        f_acc = self.acceleration_term()
+        f_acc = self.acceleration_term(desired_dir, panic_index)
 
         # TODO: Is this still necessary?
         # neighbours = self.model.space.get_neighbors(self.pos, 0.5, False)
@@ -350,14 +365,14 @@ class Human(CommonHuman):
         # Handle the repulsive effects from obstacles
         f_obs = np.array([0.,0.])
         for obstacle in self.model.obstacles:
-            f_obs += self.boundary_effect(obstacle) / self.mass
+            f_obs += self.boundary_effect(obstacle, max_dist=2) / self.mass
 
         # for exit in self.model.exits:
         #     if np.linalg.norm(self.pos - exit.get_center()) < self.vision:
         #         self.velocity += self.leader_attractive_effect(exit) / self.mass
 
         # Compute random noise force
-        f_noise = self.panic_noise_effect()
+        f_noise = self.panic_noise_effect(panic_index)
         self.velocity += (f_acc + f_soc + f_obs + f_noise) * self.model.timestep
 
         # Update the movement, position features of the agent

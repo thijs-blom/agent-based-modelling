@@ -137,7 +137,7 @@ class SocialForce(Model):
             init_speed = np.random.random()
             init_desired_speed = 2
             relax_t = self.relaxation_time
-            strategy = self.random_select_strategy(strategy_option, prob_nearest)
+            strategy = 'nearest exit'#self.random_select_strategy(strategy_option, prob_nearest)
             human = Human(
                 i,
                 self,

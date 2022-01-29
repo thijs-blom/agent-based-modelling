@@ -49,7 +49,7 @@ model_reporters = {
     }
 
 replicates = 1
-max_steps = 300
+max_steps = 1500
 distinct_samples = 2
 # distinct_samples = 500 -> actual sample size
 
@@ -91,11 +91,12 @@ for i in tqdm(range(replicates)):
         count += 1
 
         # print(f'{count / (len(param_values) * (replicates)) * 100:.2f}% done')
-
+import sys
+sys.exit(0)
 print(data)
 # ['max_speed','vision','soc_strength','obs_strength','obs_range']
 
-Si_exit_times = sobol.analyze(problem, data['Exit times'].values, calc_second_order=True, print_to_console=False)
+Si_exit_times = sobol.analyze(problem, data['Exit times'].values, calc_second_order=False, print_to_console=False)
 
 print(Si_exit_times)
 
