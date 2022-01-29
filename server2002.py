@@ -104,6 +104,4 @@ model_params = {
 }
 
 # Define and launch the server
-server = ModularServer(OneExit, [canvas, chart0, chart2, chart3], "Escape Panic", model_params)
-
-# server.launch()
+server = ModularServer(SocialForce, [canvas, chart0, chart2, chart3], "Escape Panic", model_params)

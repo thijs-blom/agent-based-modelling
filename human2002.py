@@ -10,6 +10,7 @@ from obstacle import Obstacle
 from dead import Dead
 from exit import Exit
 
+
 class Human(CommonHuman):
     """
     An agent following rules from the social force model.
@@ -178,10 +179,9 @@ class Human(CommonHuman):
         else:
             # progress can be either negative and positive
             progress_t = np.dot(self.velocity, self.desired_dir())
-            self.v_bar = (self.v_bar * (self.timestep-1) + progress_t ) / self.timestep
+            self.v_bar = (self.v_bar * (self.timestep-1) + progress_t) / self.timestep
 
         return 1 - self.v_bar / self.init_desired_speed
-
 
     def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
@@ -269,88 +269,6 @@ class Human(CommonHuman):
 
         return crashing_force
 
-    def people_effect(self, other: Human) -> np.ndarray:
-        """Compute People effect = Repulsive effect from other people + attraction effect from leaders"""
-
-        def d(agent1: Human, agent2: Human) -> float:
-            """The distance between two agents."""
-            return np.linalg.norm(agent1.pos - agent2.pos)
-
-        def n(agent1: Human, agent2: Human) -> np.ndarray:
-            """The normalized vector pointing from agent 2 to 1
-            Equation 4 in [Baseline] TODO: cite in a better way?
-            """
-            return (agent1.pos - agent2.pos) / d(agent1, agent2)
-
-        def t(agent1: Human, agent2: Human) -> np.ndarray:
-            """Compute the tangential direction on the closest point on obstacle"""
-            return np.flip(n(agent1, agent2)) * np.array([-1, 1])
-
-        def cosphi(agent1: Human, agent2: Human) -> float:
-            """The cos(angle=phi), 
-            phi is the angle between agent 2 to agent 1's force and the desired direction
-            """
-            v = agent1.velocity
-            return - np.dot(n(agent1, agent2), v / np.linalg.norm(v))
-
-        def cosphi_leader(agent: Human, leader: Human) -> float:
-            """The cos(angle=phi), 
-                phi is the angle between agent 2 to agent 1's force and the desired direction"""
-            # for attraction force of leader we need to revert the direction
-            # such that n_ki points from the agent i to the leader
-            v = agent.velocity
-            return - np.dot(n(leader, agent), v / np.linalg.norm(v))
-
-        def r(agent1: Human, agent2: Human) -> float:
-            """The sum of radii of both agents"""
-            return agent1.radius + agent2.radius
-
-        # define some temporary values for the following computations
-        contact_diff = r(self, other) - d(self, other)
-        n_ij_val = n(self, other)
-
-        # the social repulsive (distancing) force: eq 3 in baseline
-        temp = contact_diff / Human.soc_range
-        soc_force = Human.soc_strength * np.exp(temp) * n_ij_val * (
-                self.lam + (1 - self.lam) * 0.5 * (1 + cosphi(self, other)))
-
-        # the attraction force from leaders
-        if other.is_leader:
-            # when the other agent is a leader, the agent is attracted
-            # TODO: Check if we agree on the formulation of leading force
-
-            # att_force is not explicitly given but hints of design is provided on page 11, paragraph 2
-            temp_leader = contact_diff / Human.lead_range
-            # lead_strength is provided
-            # for attraction force of leader we need to revert the direction 
-            # such that n_ki points from the agent i to the leader
-            att_force = Human.lead_strength * np.exp(temp_leader) * n_ij_val * (
-                    self.lam + (1 - self.lam) * 0.5 * (1 + cosphi_leader(self, other)))
-        else:
-            att_force = 0
-
-        # the crashing force: if and only if the distance between two agents is smaller than the sum of their radiis
-        # if contact_diff >= 0 then two agents crash into each other
-        if contact_diff >= 0:
-            delta_ji = np.dot(other.velocity - self.velocity, t(self, other))
-            sliding_force = Human.sfc * contact_diff * delta_ji * n_ij_val
-            body_force = Human.bfc * contact_diff * n_ij_val
-            crashing_force = sliding_force + body_force
-            crashing_strength = np.linalg.norm(crashing_force)
-            deduction_param = 0.000001
-            energy_lost = (crashing_strength / self.mass) * deduction_param
-            # very big force can just kill people? seems not very realistic? but it's also not good to say maximum damage is a constant?
-            if energy_lost > 0.25:
-                energy_lost = 0.25
-            self.energy -= energy_lost
-            self.energy = np.clip(self.energy, 0, 1)
-            # print(f'crashed with another guy! : energy lost {energy_lost}')
-        else:
-            crashing_force = 0
-
-        # the total force cause by the other agent j to self agent i is repulsive + attraction force  
-        return soc_force + att_force + crashing_force
-
     def boundary_effect(self, obstacle: Obstacle) -> np.ndarray:
         """Repulsive effect from an obstacle"""
 
@@ -414,19 +332,20 @@ class Human(CommonHuman):
         #     return
 
         # Handle the repulsive effects from other people
-        self.f_soc = np.array([0.,0.])
+        f_soc = np.array([0., 0.])
         
         neighbours = self.model.space.get_neighbors(self.pos, self.vision, False)
         for other in neighbours:
+            distance = np.linalg.norm(self.pos - other.pos)
             # Compute repulsive effect from other people
-            self.f_soc += self.people_repulsive_effect(other) / self.mass
+            f_soc += self.people_repulsive_effect(other, d=distance) / self.mass
 
             # Follow the leader effect
             if other.is_leader:
-                self.f_soc += self.leader_attractive_effect(other) / self.mass
+                f_soc += self.leader_attractive_effect(other, d=distance) / self.mass
 
             # Crash effect
-            self.f_soc += self.crash_effect(other) / self.mass
+            f_soc += self.crash_effect(other, d=distance) / self.mass
 # Type I
         # Handle the repulsive effects from obstacles
         f_obs = np.array([0.,0.])
@@ -439,7 +358,7 @@ class Human(CommonHuman):
 
         # Compute random noise force
         f_noise = self.panic_noise_effect()
-        self.velocity += (f_acc + self.f_soc + f_obs + f_noise) * self.model.timestep
+        self.velocity += (f_acc + f_soc + f_obs + f_noise) * self.model.timestep
 
         # Update the movement, position features of the agent
         self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
@@ -473,7 +392,7 @@ class Human(CommonHuman):
         
         # if self.unique_id == 0:
         #     plt.quiver(*self.pos, f_acc[0], f_acc[1], color=['r'], label='acc')
-        #     plt.quiver(*self.pos, self.f_soc[0], self.f_soc[1], color=['b'], label='social')
+        #     plt.quiver(*self.pos, f_soc[0], f_soc[1], color=['b'], label='social')
         #     plt.quiver(*self.pos, f_obs[0], f_obs[1], color=['g'], label='obstable')
         #     plt.ylim(0,20)
         #     plt.xlim(0,20)
@@ -481,6 +400,6 @@ class Human(CommonHuman):
         #     plt.ylabel('height')
         #     plt.legend()
         #     plt.show()
-        #     print("Social f:", self.f_soc)
+        #     print("Social f:", f_soc)
         #     print("Acceleration f:", f_acc)
         #     print("Obstacle f:", f_obs)
