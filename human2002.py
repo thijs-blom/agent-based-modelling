@@ -183,9 +183,9 @@ class Human(CommonHuman):
             progress_t = np.dot(self.velocity, desired_dir)
             self.v_bar = (self.v_bar * (self.timestep-1) + progress_t) / self.timestep
 
-        return 1 - self.v_bar / self.init_desired_speed
+        return 0 #1 - self.v_bar / self.init_desired_speed
 
-    def desired_speed(self, panic_index: float = None):
+    def desired_speed(self):
         """ Compute the current desired speed of agent : v0_i(t)"""
         # eq 11 of baseline paper
         if panic_index is None:
@@ -400,7 +400,7 @@ class Human(CommonHuman):
 
         # Remove the agent from the model if it has reached an exit
         for exit in self.model.exits:
-            if exit.in_exit(self.pos):
+            if exit.in_exit(self.pos, self.radius):
                 self.model.exit_times.append(self.timestep*self.model.timestep)
                 self.model.remove_agent(self)
                 break

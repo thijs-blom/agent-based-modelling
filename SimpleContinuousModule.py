@@ -5,8 +5,8 @@ from dead import Dead
 class SimpleCanvas(VisualizationElement):
     local_includes = ["simple_continuous_canvas.js"]
     portrayal_method = None
-    #canvas_height = 500
-    #canvas_width = 500
+    canvas_height = 500
+    canvas_width = 500
 
     def __init__(self, agent_portrayal, wall_portrayal, dead_portrayal, canvas_width, canvas_height):
         """

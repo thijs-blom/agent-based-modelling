@@ -36,7 +36,7 @@ class SocialForce(Model):
         exits: List[Obstacle] = None,
         timestep: float = 0.01,
         prob_nearest: float = 0.5,
-        lst_strategy: list = ['nearest exit', 'hesitator']
+        lst_strategy: list = ['nearest exit', 'hesitator'],
     ):
         """
         Create a new instance of the social force model.
@@ -61,9 +61,9 @@ class SocialForce(Model):
         self.init_amount_obstacles = len(self.obstacles)
         self.ending_energy_lst = np.ones(self.population)
         self.timestep = timestep
-        self.exit_times = [0, 1, 2]
+        self.exit_times = []
         self.evacuation_time = float("inf")
-
+        self.flow = 0
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
 
@@ -120,7 +120,7 @@ class SocialForce(Model):
         else:
             return strategy_option[1]
 
-    def make_agents(self, strategy_option,prob_nearest):
+    def make_agents(self, strategy_option, prob_nearest):
         """
         Create self.population agents, with random positions and starting headings.
         """
@@ -153,7 +153,7 @@ class SocialForce(Model):
                 init_desired_speed,
                 False,
                 relax_t,
-                strategy
+                'nearest exit'
             )
             self.space.place_agent(human, pos)
             self.schedule.add(human)
@@ -166,6 +166,8 @@ class SocialForce(Model):
         self.datacollector.collect(self)
 
         if self.schedule.get_agent_count() == 0:
+            self.flow = (len(self.exit_times) - 1) / self.exit_times[-1] - self.exit_times[0]
+            print(self.flow)
             self.evacuation_time = self.exit_times[-1]
             self.running = False
 
