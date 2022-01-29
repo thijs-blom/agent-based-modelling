@@ -73,28 +73,12 @@ class SocialForce(Model):
         self.datacollector = DataCollector(
             model_reporters={
                 "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
-                "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
                 "Average Panic": lambda m: self.count_panic() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0,
                 "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
             })
-        
-          # 'Amount of death': self.caused_death(),
+    
         self.running = True
         self.datacollector.collect(self)
-
-          # 'Amount of death': self.caused_death(),
-        self.running = True
-        self.datacollector.collect(self)
-
-    def count_energy(self):
-        """
-        Helper method to count trees in a given condition in a given model.
-        """
-        count = 0
-        for human in self.schedule.agents:
-            if human.energy >= 0:
-                count += human.energy
-        return count
 
     def count_speed(self):
         """
@@ -132,13 +116,11 @@ class SocialForce(Model):
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
             lam = np.random.uniform(0.7,0.95)
-            velocity = (np.random.random(2)-0.5) 
-            # don't know what is mass yet
+            velocity = (np.random.random(2)-0.5)
             mass = np.random.uniform(50, 80)
             radius = np.random.uniform(0.37,0.55)/2
             current_timestep = 0
             init_speed = np.random.random()
-            init_desired_speed = self.init_desired_speed
             relax_t = self.relaxation_time
             strategy = self.random_select_strategy(strategy_option, prob_nearest)
             human = Human(
@@ -153,8 +135,7 @@ class SocialForce(Model):
                 lam,
                 current_timestep,
                 init_speed,
-                init_desired_speed,
-                False,
+                self.init_desired_speed,
                 relax_t,
                 'nearest exit'
             )
@@ -170,14 +151,13 @@ class SocialForce(Model):
 
         if self.schedule.get_agent_count() == 0:
             self.flow = (len(self.exit_times) - 1) / (self.exit_times[-1] - self.exit_times[0])
-            print(self.flow)
             self.evacuation_time = self.exit_times[-1]
+            print(self.evacuation_time)
             self.running = False
 
     def remove_agent(self, agent):
         """
         Method that removes an agent from the grid and the correct scheduler.
         """
-        self.ending_energy_lst[agent.unique_id] = agent.energy
         self.space.remove_agent(agent)
         self.schedule.remove(agent)

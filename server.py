@@ -40,22 +40,19 @@ width = 15
 height = 15
 doorsize = 1
 
+# Shows how to draw humans and walls
 def human_draw(agent: Human) -> Dict:
     return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Red"}
 
 def wall_draw(wall: Wall) -> Dict:
     return {"Shape": "line", "w": 5, "Color": "Black"}
 
-def dead_draw(dead: Dead) -> Dict:
-    return {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Black"}
-
 
 # Define canvas and charts
-canvas = SimpleCanvas(human_draw, wall_draw, dead_draw, canvas_width=500, canvas_height=500)
-chart0 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#AA0000"}], 10, 25)
-chart1 = ChartModule([{"Label": "Number of Casualties", "Color": "#AA0000"}], 10, 25)
-chart2 = ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}], 10, 25)
-chart3 = ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
+canvas = SimpleCanvas(human_draw, wall_draw, canvas_width=500, canvas_height=500)
+chart1 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#00AA19"}])
+chart2 = ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}])
+chart3 = ChartModule([{"Label": "Average Speed", "Color": "#175FE6"}])
 
 # hist1 = HistogramModule(np.arange(0, 5, 0.1), height, width)
 
@@ -104,6 +101,6 @@ model_params = {
 }
 
 # Define and launch the server
-server = ModularServer(SocialForce, [canvas, chart0, chart2, chart3], "Escape Panic", model_params)
+server = ModularServer(SocialForce, [canvas, chart1, chart2, chart3], "Escape Panic", model_params)
 
 server.launch()

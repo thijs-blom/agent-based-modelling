@@ -1,7 +1,6 @@
 import numpy as np
 from mesa import Agent
 
-
 class CommonHuman(Agent):
     """
     An agent following rules from the social force model.
@@ -40,6 +39,5 @@ class CommonHuman(Agent):
     soc_range = 0.08
     bfc = 120000
     sfc = 240000
-    sfc_wall = 200
     obs_strength = 5000
     obs_range = 0.08
