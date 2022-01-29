@@ -16,10 +16,11 @@ class OneExit(SocialForce):
         relaxation_time: float = 1,
         timestep: float = 0.01,
         init_desired_speed: float = 2.0,
+        prob_nearest: float = 1.0,
         door_size: float = 1,
     ):
         # Pass along
-        super().__init__(population, width, height, max_speed, vision, relaxation_time, [], [], timestep, init_desired_speed)
+        super().__init__(population, width, height, max_speed, vision, relaxation_time, [], [], timestep, prob_nearest, init_desired_speed)
 
         # Define walls
         self.obstacles = [

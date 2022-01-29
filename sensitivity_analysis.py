@@ -52,7 +52,7 @@ model_reporters = {
     #"Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
     "Exit Times": lambda m: np.mean(m.exit_times),
     "Evacuation Time": lambda m: m.evacuation_time,
-    "Flow / Desired Velocity": lambda m: m.flow / m.init_desired_spped,
+    "Flow / Desired Velocity": lambda m: m.flow / m.init_desired_speed,
     }
 
 data = {}
