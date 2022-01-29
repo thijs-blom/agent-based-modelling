@@ -16,7 +16,7 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
 # Project imports
-from human2002 import Human
+from human import Human
 from obstacle import Obstacle
 
 
@@ -35,7 +35,7 @@ class SocialForce(Model):
         obstacles: List[Obstacle] = None,
         exits: List[Obstacle] = None,
         timestep: float = 0.01,
-        init_desired_speed: float = 2.0,
+        desired_speed: float = 2.0,
         prob_nearest: float = 0.5,
         lst_strategy: list = ['nearest exit', 'hesitator'],
     ):
@@ -58,6 +58,7 @@ class SocialForce(Model):
         self.obstacles = obstacles if obstacles else []
         self.exits = exits if exits else []
         self.max_speed = max_speed
+        self.desired_speed = desired_speed
         self.make_agents(lst_strategy, prob_nearest)
         self.init_amount_obstacles = len(self.obstacles)
         self.ending_energy_lst = np.ones(self.population)
@@ -65,7 +66,6 @@ class SocialForce(Model):
         self.exit_times = []
         self.evacuation_time = float("inf")
         self.flow = 0
-        self.init_desired_speed = init_desired_speed
 
 
         # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
@@ -138,6 +138,7 @@ class SocialForce(Model):
             radius = np.random.uniform(0.37,0.55)/2
             current_timestep = 0
             init_speed = np.random.random()
+            init_desired_speed = self.desired_speed
             relax_t = self.relaxation_time
             strategy = self.random_select_strategy(strategy_option, prob_nearest)
             human = Human(
@@ -152,7 +153,7 @@ class SocialForce(Model):
                 lam,
                 current_timestep,
                 init_speed,
-                self.init_desired_speed,
+                init_desired_speed,
                 False,
                 relax_t,
                 'nearest exit'

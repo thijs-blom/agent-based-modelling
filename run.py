@@ -1,3 +1,3 @@
-import server2002
+import server
 
-server2002.server.launch()
+server.launch()

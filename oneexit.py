@@ -1,4 +1,4 @@
-from model2002 import SocialForce
+from model import SocialForce
 from exit import Exit
 from wall import Wall
 import numpy as np
@@ -20,7 +20,7 @@ class OneExit(SocialForce):
         door_size: float = 1,
     ):
         # Pass along
-        super().__init__(population, width, height, max_speed, vision, relaxation_time, [], [], timestep, prob_nearest, init_desired_speed)
+        super().__init__(population, width, height, max_speed, vision, relaxation_time, [], [], timestep, init_desired_speed, prob_nearest)
 
         # Define walls
         self.obstacles = [

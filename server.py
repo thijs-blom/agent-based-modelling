@@ -8,8 +8,8 @@ from exit import Exit
 from oneexit import OneExit
 from wall import Wall
 from dead import Dead
-from human2002 import Human
-from model2002 import SocialForce
+from human import Human
+from model import SocialForce
 
 import numpy as np
 from typing import Dict
@@ -105,3 +105,5 @@ model_params = {
 
 # Define and launch the server
 server = ModularServer(SocialForce, [canvas, chart0, chart2, chart3], "Escape Panic", model_params)
+
+server.launch()

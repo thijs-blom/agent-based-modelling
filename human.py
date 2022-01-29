@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Project imports
-from CommonHuman2002 import CommonHuman
+from CommonHuman import CommonHuman
 from obstacle import Obstacle
 from dead import Dead
 from exit import Exit

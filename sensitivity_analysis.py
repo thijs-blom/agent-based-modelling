@@ -4,13 +4,7 @@ import numpy as np
 import pandas as pd
 import csv
 from mesa.batchrunner import BatchRunner
-# from exit import Exit
-# from wall import Wall
-# from dead import Dead
-# from human2002 import Human
-# from base_human import Human
 from oneexit import OneExit
-from model2002 import SocialForce
 
 import numpy as np
 from typing import Dict
