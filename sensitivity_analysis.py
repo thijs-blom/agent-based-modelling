@@ -10,11 +10,10 @@ from mesa.batchrunner import BatchRunner
 # from human2002 import Human
 # from base_human import Human
 from oneexit import OneExit
+from model2002 import SocialForce
 
 import numpy as np
 from typing import Dict
-
-# from server2002 import width, height
 
 #sobol
 # import SALib
@@ -22,9 +21,13 @@ from typing import Dict
 # from SALib.analyze import sobol
 
 # Define variables and bounds
+# parameters = {
+#     'names': ['population', 'relaxation_time', 'doorsize'],
+#     'bounds': [[10, 200], [0.5, 0.1], [0.6, 2.4]]
+# }
 parameters = {
-    'names': ['population', 'relaxation_time', 'door_size'],
-    'bounds': [[10, 200], [0.5, 0.1], [0.6, 2.4]]
+    'names': ['init_desired_speed'],
+    'bounds': [[0.5, 5]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
@@ -34,11 +37,12 @@ distinct_samples = 4
 
 # Set up all the parameters to be entered into the model
 model_params = {
-    "width": 20,
-    "height": 20,
+    "width": 15,
+    "height": 15,
     "vision": 1,
     "max_speed": 5,
-    "timestep": 0.01
+    "timestep": 0.01,
+    "prob_nearest": 1,
 }
 
 model_reporters = {
@@ -48,6 +52,7 @@ model_reporters = {
     #"Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
     "Exit Times": lambda m: np.mean(m.exit_times),
     "Evacuation Time": lambda m: m.evacuation_time,
+    "Flow / Desired Velocity": lambda m: m.flow / m.init_desired_spped,
     }
 
 data = {}
@@ -62,7 +67,6 @@ for i, var in enumerate(parameters['names']):
     if var == 'population':
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples, dtype=int)
     
-
     batch = BatchRunner(OneExit,
                         max_steps=max_steps,
                         iterations=replicates,

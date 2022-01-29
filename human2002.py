@@ -185,7 +185,7 @@ class Human(CommonHuman):
 
         return 0 #1 - self.v_bar / self.init_desired_speed
 
-    def desired_speed(self):
+    def desired_speed(self, panic_index: float = None):
         """ Compute the current desired speed of agent : v0_i(t)"""
         # eq 11 of baseline paper
         if panic_index is None:
