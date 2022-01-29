@@ -8,7 +8,7 @@ class OneExit(SocialForce):
     '''Social Force but then for different doorsizes.'''
     def __init__(
         self,
-        population: int = 200,
+        population: int = 100,
         width: float = 100,
         height: float = 100,
         max_speed: float = 5,
