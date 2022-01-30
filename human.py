@@ -77,7 +77,7 @@ class Human(Agent):
         self.tau = relax_t
         self.strategy = strategy
         self.speed = init_speed
-        self.average_progress = init_speed
+        self.avg_progress = init_speed
 
     def desired_dir(self) -> np.ndarray:
         """ Compute the desired direction of the agent
@@ -167,9 +167,9 @@ class Human(Agent):
                 desired_dir = self.desired_dir()
             # progress can be either negative and positive
             progress_t = np.dot(self.velocity, desired_dir)
-            self.average_progress = (self.average_progress * (self.timestep - 1) + progress_t) / self.timestep
+            self.avg_progress = (self.avg_progress * (self.timestep - 1) + progress_t) / self.timestep
 
-        return 1 - self.average_progress / self.init_desired_speed
+        return 1 - self.avg_progress / self.init_desired_speed
 
     def desired_speed(self, panic_index: float = None):
         """ Compute the current desired speed of agent : v0_i(t)"""
@@ -269,11 +269,13 @@ class Human(Agent):
         for obstacle in self.model.obstacles:
             f_obs += self.boundary_effect(obstacle, max_dist=2) / self.mass
 
+        # Update velocity
         self.velocity += (f_acc + f_soc + f_obs) * self.model.timestep
 
         # Compute the actual velocity, with speed capped to the maximum speed
-        self.speed = np.clip(np.linalg.norm(self.velocity), 0, self.max_speed)
-        self.velocity /= np.linalg.norm(self.velocity)
+        desired_speed = np.linalg.norm(self.velocity)
+        self.speed = np.clip(desired_speed, 0, self.max_speed)
+        self.velocity /= desired_speed
         self.velocity *= self.speed
 
         # update the position

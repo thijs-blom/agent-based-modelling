@@ -31,7 +31,7 @@ class SocialForce(Model):
             height: float = 100,
             max_speed: float = 5,
             vision: float = 1,
-            relaxation_time: float = 1,
+            relaxation_time: float = 0.5,
             obstacles: List[Obstacle] = None,
             exits: List[Obstacle] = None,
             timestep: float = 0.01,
