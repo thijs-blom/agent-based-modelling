@@ -171,7 +171,6 @@ class SocialForce(Model):
 
         if self.schedule.get_agent_count() == 0:
             self.flow = (len(self.exit_times) - 1) / (self.exit_times[-1] - self.exit_times[0])
-            print(self.flow)
             self.evacuation_time = self.exit_times[-1]
             self.running = False
 

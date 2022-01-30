@@ -37,8 +37,24 @@ def batch_run(samples: np.ndarray,
     # Start the parallel processing of the samples
     batch.run_all()
 
-    # Return a Pandas dataframe with the parameters, and the specified model reporters
-    return batch.get_model_vars_dataframe()
+    # Get a Pandas dataframe with the parameters, and the specified model reporters
+    df = batch.get_model_vars_dataframe()
+
+    # Set the parameters properly, instead of it being a Sample object
+    df["max_speed"] = df["sample"].apply(lambda s: s.max_speed)
+    df["vision"] = df["sample"].apply(lambda s: s.vision)
+    df["soc_strength"] = df["sample"].apply(lambda s: s.soc_strength)
+    df["obs_strength"] = df["sample"].apply(lambda s: s.obs_strength)
+    df = df.drop(columns=["sample"])
+
+    # Reorder the columns to give the same dataframe as if the sample parameters
+    # were directly passed as variable parameters. May not be necessary, but might
+    # be handy for consistency.
+    cols = df.columns.tolist()
+    cols = cols[-4:] + cols[:-4]
+    df = df[cols]
+
+    return df
 
 
 def main(input_file: str,
@@ -81,10 +97,12 @@ if __name__ == "__main__":
     if not os.path.exists(f"samples/{filename}"):
         raise ValueError("The specified file does not exist. Make sure you have pulled the samples from git " +
                          "and passed the correct filename.")
+    # Replace the extension with csv for the output file
+    filename_out = filename.split('.')[0] + '.csv'
 
     num_processes = sys.argv[2]
     if not num_processes.isdigit():
         raise ValueError("Number of processes must be an integer")
     num_processes = int(num_processes)
 
-    main(input_file=f"samples/{filename}", output_file=f"data/{filename}", processes=num_processes)
+    main(input_file=f"samples/{filename}", output_file=f"data/{filename_out}", processes=num_processes)
