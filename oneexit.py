@@ -2,6 +2,7 @@ from typing import  List
 
 from model import SocialForce
 from exit import Exit
+from sample import Sample
 from wall import Wall
 import numpy as np
 
@@ -27,26 +28,25 @@ class OneExit(SocialForce):
             sfc: float = 240000,
             obs_strength: float = 5000,
             obs_range: float = 0.08,
-            variable_parameters: List[float] = None
+            sample: Sample = None
     ):
         # Check if any argument is missing
         if (max_speed is None or vision is None or soc_strength is None or obs_strength is None) \
-                and variable_parameters is None:
+                and sample is None:
             raise ValueError("Incomplete argument list. max_speed, vision, soc_strength, or obs_strength is missing")
 
         # Check if
-        if variable_parameters is not None and \
+        if sample is not None and \
                 (max_speed, vision, soc_strength, obs_strength) != (None, None, None, None):
             raise ValueError("Either max_speed, vision, soc_strength or obs_strength is passed " +
                              "both as a keyword argument and using variable parameters")
 
         # If variable parameters are used, unpack them
-        if variable_parameters is not None:
-            if len(variable_parameters) == 4:
-                max_speed, vision, soc_strength, obs_strength = variable_parameters
-            else:
-                raise ValueError("Argument 'variable_parameters' must be a tuple of 4 values: " +
-                                 "(max_speed, vision, soc_strength, obs_strength")
+        if sample is not None:
+            max_speed = sample.max_speed
+            vision = sample.vision
+            soc_strength = sample.soc_strength
+            obs_strength = sample.obs_strength
 
         # Pass along
         super().__init__(population=population,

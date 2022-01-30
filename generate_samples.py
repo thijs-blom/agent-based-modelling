@@ -3,15 +3,15 @@ from typing import List
 import numpy as np
 from SALib.sample import saltelli
 
-variable_definition = {
-    'num_vars': 4,
-    'names': ['max_speed', 'vision', 'soc_strength', 'obs_strength'],
-    # TODO: set the bounds for global analysis
-    'bounds': [[1, 2], [2, 3], [3, 4], [4, 5]]
-}
-
 
 def generate_samples(num_samples: int = 512, second_order: bool = False):
+    variable_definition = {
+        'num_vars': 4,
+        'names': ['max_speed', 'vision', 'soc_strength', 'obs_strength'],
+        # TODO: set the bounds for global analysis
+        'bounds': [[1, 2], [2, 3], [3, 4], [4, 5]]
+    }
+
     return saltelli.sample(variable_definition, num_samples, calc_second_order=second_order)
 
 

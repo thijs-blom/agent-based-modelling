@@ -7,6 +7,7 @@ import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
 
 from oneexit import OneExit
+from sample import Sample
 
 
 def batch_run(samples: np.ndarray,
@@ -15,7 +16,8 @@ def batch_run(samples: np.ndarray,
               model_reporters: Dict,
               processes: int) -> pd.DataFrame:
     # Define the variable parameters used in the model (max_speed, vision, soc_strength, obs_strength)
-    variable_params = {"variable_parameters": samples}
+    sample_list = [Sample(*values) for values in samples]
+    variable_params = {"sample": sample_list}
 
     # These parameters are passed using variable_params, and _must_ themselves be set to None.
     fixed_params = fixed_model_params.copy()
@@ -44,7 +46,7 @@ def main(input_file: str,
          processes: int = 4):
 
     # Load the generated samples
-    samples = np.load(f"samples/{input_file}")
+    samples = np.load(input_file)
 
     # The maximum number of ticks the simulation will run for
     # TODO: define the number of steps
@@ -53,7 +55,7 @@ def main(input_file: str,
     # Define (non-default) fixed model parameters
     fixed_model_params = {
         "door_size": 2,
-        "time_step": 0.01,
+        "timestep": 0.01,
         "relaxation_time": 1
     }
 
