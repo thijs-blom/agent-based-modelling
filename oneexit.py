@@ -35,11 +35,11 @@ class OneExit(SocialForce):
                 and sample is None:
             raise ValueError("Incomplete argument list. max_speed, vision, soc_strength, or obs_strength is missing")
 
-        # Check if
+        # Check if any of the arguments in the sample is also passed separately
         if sample is not None and \
                 (max_speed, vision, soc_strength, obs_strength) != (None, None, None, None):
             raise ValueError("Either max_speed, vision, soc_strength or obs_strength is passed " +
-                             "both as a keyword argument and using variable parameters")
+                             "both as a keyword argument and as a sample")
 
         # If variable parameters are used, unpack them
         if sample is not None:
