@@ -25,19 +25,25 @@ class SocialForce(Model):
     Social Force model. Handles agent creation, placement, exiting and scheduling.
     """
     def __init__(
-        self,
-        population: int = 100,
-        width: float = 100,
-        height: float = 100,
-        max_speed: float = 5,
-        vision: float = 1,
-        relaxation_time: float = 1,
-        obstacles: List[Obstacle] = None,
-        exits: List[Obstacle] = None,
-        timestep: float = 0.01,
-        init_desired_speed: float = 2.0,
-        prob_nearest: float = 0.5,
-        lst_strategy: list = ['nearest exit', 'hesitator'],
+            self,
+            population: int = 100,
+            width: float = 100,
+            height: float = 100,
+            max_speed: float = 5,
+            vision: float = 1,
+            relaxation_time: float = 1,
+            obstacles: List[Obstacle] = None,
+            exits: List[Obstacle] = None,
+            timestep: float = 0.01,
+            init_desired_speed: float = 2.0,
+            prob_nearest: float = 0.5,
+            lst_strategy: list = None,
+            soc_strength: float = 2000,
+            soc_range: float = 0.08,
+            bfc: float = 120000,
+            sfc: float = 240000,
+            obs_strength: float = 5000,
+            obs_range: float = 0.08
     ):
         """
         Create a new instance of the social force model.
@@ -50,51 +56,47 @@ class SocialForce(Model):
             obstacles: A list of obstacles agents must avoid
             exits: A list of exits where users leave the room
         """
+        # Set model parameters
         self.population = population
         self.vision = vision
         self.relaxation_time = relaxation_time
-        self.schedule = RandomActivation(self)
-        self.space = ContinuousSpace(width, height, False)
         self.obstacles = obstacles if obstacles else []
         self.exits = exits if exits else []
         self.max_speed = max_speed
         self.init_desired_speed = init_desired_speed
         self.timestep = timestep
+
+        # Model parameters for the forces
+        self.soc_strength = soc_strength
+        self.soc_range = soc_range
+        self.bfc = bfc
+        self.sfc = sfc
+        self.obs_strength = obs_strength
+        self.obs_range = obs_range
+
+        # Variables to keep track of relevant statistics
         self.exit_times = []
-        self.evacuation_time = float("inf")
+        self.evacuation_time = np.inf
         self.flow = 0
+
+        # Set default strategies if none are given
+        if lst_strategy is None:
+            lst_strategy = ['nearest exit', 'hesitator']
+
+        # Set up the model
+        self.schedule = RandomActivation(self)
+        self.space = ContinuousSpace(width, height, False)
         self.make_agents(lst_strategy, prob_nearest)
-        self.init_amount_obstacles = len(self.obstacles)
-        self.ending_energy_lst = np.ones(self.population)
 
+        # self.datacollector = DataCollector(
+        #     model_reporters={
+        #         "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
+        #         "Average Panic": lambda m: self.count_panic() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0,
+        #         "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
+        #     })
 
-        # self.datacollector = DataCollector({"Human": lambda m: self.schedule.get_agent_count()})
-
-        self.datacollector = DataCollector(
-            model_reporters={
-                "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
-                "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-                "Average Panic": lambda m: self.count_panic() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0,
-                "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
-            })
-        
-          # 'Amount of death': self.caused_death(),
         self.running = True
-        self.datacollector.collect(self)
-
-          # 'Amount of death': self.caused_death(),
-        self.running = True
-        self.datacollector.collect(self)
-
-    def count_energy(self):
-        """
-        Helper method to count trees in a given condition in a given model.
-        """
-        count = 0
-        for human in self.schedule.agents:
-            if human.energy >= 0:
-                count += human.energy
-        return count
+        # self.datacollector.collect(self)
 
     def count_speed(self):
         """
@@ -154,7 +156,6 @@ class SocialForce(Model):
                 current_timestep,
                 init_speed,
                 init_desired_speed,
-                False,
                 relax_t,
                 'nearest exit'
             )
@@ -166,7 +167,7 @@ class SocialForce(Model):
         self.schedule.step()
 
         # Save the statistics
-        self.datacollector.collect(self)
+        # self.datacollector.collect(self)
 
         if self.schedule.get_agent_count() == 0:
             self.flow = (len(self.exit_times) - 1) / (self.exit_times[-1] - self.exit_times[0])
@@ -178,6 +179,5 @@ class SocialForce(Model):
         """
         Method that removes an agent from the grid and the correct scheduler.
         """
-        self.ending_energy_lst[agent.unique_id] = agent.energy
         self.space.remove_agent(agent)
         self.schedule.remove(agent)

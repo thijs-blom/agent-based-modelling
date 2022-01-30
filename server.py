@@ -5,9 +5,7 @@ from mesa.visualization.ModularVisualization import VisualizationElement
 
 from SimpleContinuousModule import SimpleCanvas
 from exit import Exit
-from oneexit import OneExit
 from wall import Wall
-from dead import Dead
 from human import Human
 from model import SocialForce
 
@@ -40,18 +38,17 @@ width = 15
 height = 15
 doorsize = 1
 
+
 def human_draw(agent: Human) -> Dict:
     return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Red"}
+
 
 def wall_draw(wall: Wall) -> Dict:
     return {"Shape": "line", "w": 5, "Color": "Black"}
 
-def dead_draw(dead: Dead) -> Dict:
-    return {"Shape": "circle", "r": 0.25*25, "Filled": "true", "Color": "Black"}
-
 
 # Define canvas and charts
-canvas = SimpleCanvas(human_draw, wall_draw, dead_draw, canvas_width=500, canvas_height=500)
+canvas = SimpleCanvas(human_draw, wall_draw, canvas_width=500, canvas_height=500)
 chart0 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#AA0000"}], 10, 25)
 chart1 = ChartModule([{"Label": "Number of Casualties", "Color": "#AA0000"}], 10, 25)
 chart2 = ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}], 10, 25)
@@ -61,11 +58,11 @@ chart3 = ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
 
 # Define all walls in the system
 init_obstacles = [
-Wall(np.array([0, 0]), np.array([0, height])),
-Wall(np.array([0, 0]), np.array([width, 0])),
-Wall(np.array([width, 0]), np.array([width, height])),
-Wall(np.array([0, height]), np.array([width/2 - doorsize/2, height])),
-Wall(np.array([width/2 + doorsize/2, height]), np.array([width, height]))
+    Wall(np.array([0, 0]), np.array([0, height])),
+    Wall(np.array([0, 0]), np.array([width, 0])),
+    Wall(np.array([width, 0]), np.array([width, height])),
+    Wall(np.array([0, height]), np.array([width/2 - doorsize/2, height])),
+    Wall(np.array([width/2 + doorsize/2, height]), np.array([width, height]))
 ]
 
 # Define all exits in the system
