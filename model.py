@@ -32,6 +32,8 @@ class SocialForce(Model):
             max_speed: float = 5,
             vision: float = 1,
             relaxation_time: float = 0.5,
+            max_steps: int = 10000,
+            evac_perc: float = 0.0,
             obstacles: List[Obstacle] = None,
             exits: List[Obstacle] = None,
             timestep: float = 0.01,
@@ -76,8 +78,10 @@ class SocialForce(Model):
 
         # Variables to keep track of relevant statistics
         self.exit_times = []
-        self.evacuation_time = np.inf
+        self.evac_perc = evac_perc
         self.flow = 0
+        self.max_steps = max_steps
+        self.current_timestep = 0
 
         # Set default strategies if none are given
         if lst_strategy is None:
@@ -166,13 +170,22 @@ class SocialForce(Model):
         """Let the agent move/act."""
         self.schedule.step()
 
+        self.current_timestep += 1
+
         # Save the statistics
         # self.datacollector.collect(self)
 
         if self.schedule.get_agent_count() == 0:
             self.flow = (len(self.exit_times) - 1) / (self.exit_times[-1] - self.exit_times[0])
-            self.evacuation_time = self.exit_times[-1]
+            self.evacuation_percentage = 100
             self.running = False
+        
+        elif self.max_steps == self.current_timestep:
+            self.evacuation_percentage = self.schedule.get_agent_count() / self.population * 100
+            if len(self.exit_times) > 1:
+                self.flow = (len(self.exit_times) - 1) / (self.exit_times[-1] - self.exit_times[0])
+            else:
+                self.flow = 0
 
     def remove_agent(self, agent):
         """

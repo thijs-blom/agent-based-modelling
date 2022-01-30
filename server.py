@@ -90,9 +90,9 @@ model_params = {
     "relaxation_time": UserSettableParameter(
         "slider",
         "Relaxation Time (1/tau)",
-        1,
-        0.5,
-        1,
+        0..5,
+        0.02,
+        0.6,
         0.01,
         description="Relaxation Time"),
     "obstacles": init_obstacles,
