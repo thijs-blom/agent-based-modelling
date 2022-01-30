@@ -72,7 +72,8 @@ def main(input_file: str,
     fixed_model_params = {
         "door_size": 2,
         "timestep": 0.01,
-        "relaxation_time": 1
+        "relaxation_time": 1,
+        "max_steps": max_steps,
     }
 
     # Define the statistics we want to collect after a simulation
