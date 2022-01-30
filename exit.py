@@ -1,7 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
 
-
 @dataclass
 class Exit:
     left: np.ndarray
@@ -16,8 +15,11 @@ class Exit:
     def in_exit(self, pos: np.ndarray, radius) -> bool:
         to_left = np.linalg.norm(pos - self.left)
         to_right = np.linalg.norm(pos - self.right)
+        
+        # Make sure they are completely in the exit
         if to_left < radius or to_right < radius:
             return False
+        
         width = np.linalg.norm(self.left - self.right)
         return to_left + to_right - width < 0.05
 

@@ -15,7 +15,7 @@ parameters = {
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-replicates = 10
+replicates = 1
 max_steps = 10000
 distinct_samples = 10
 

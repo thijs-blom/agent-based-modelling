@@ -51,11 +51,14 @@ model_reporters = {
 replicates = 1
 max_steps = 1500
 distinct_samples = 2
-# distinct_samples = 500 -> actual sample size
 
+# Actual Sample values
+# replicates = 500
+# max_steps = 10000
+# distinct_samples = 5
 
 # We get all our samples here
-param_values = saltelli.sample(problem, distinct_samples, calc_second_order = False )
+param_values = saltelli.sample(problem, distinct_samples, calc_second_order = False)
 # print(len(param_values))
 
 # READ NOTE BELOW CODE
@@ -71,7 +74,7 @@ data = pd.DataFrame(index=range(replicates*len(param_values)),
 data['Run'], data['Exit times'] = None, None
 
 for i in tqdm(range(replicates)):
-    for vals in tqdm(param_values): 
+    for vals in tqdm(param_values):
         # Change parameters that should be integers
         vals = list(vals)
 
