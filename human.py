@@ -273,9 +273,9 @@ class Human(Agent):
         self.velocity += (f_acc + f_soc + f_obs) * self.model.timestep
 
         # Compute the actual velocity, with speed capped to the maximum speed
-        desired_speed = np.linalg.norm(self.velocity)
-        self.speed = np.clip(desired_speed, 0, self.max_speed)
-        self.velocity /= desired_speed
+        calculated_speed = np.linalg.norm(self.velocity)
+        self.speed = np.clip(calculated_speed, 0, self.max_speed)
+        self.velocity /= calculated_speed
         self.velocity *= self.speed
 
         # update the position

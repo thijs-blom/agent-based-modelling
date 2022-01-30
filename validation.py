@@ -58,7 +58,7 @@ for i, var in enumerate(parameters['names']):
     data[var] = batch.get_model_vars_dataframe()
 
 print(data)
-file.to_csv(f"SA_Data\Validation_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+file.to_csv(f"SA_Data/Validation_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
 def plot_param_var_conf(ax, df, var, param, i):
     """
