@@ -17,7 +17,7 @@ from typing import Dict
 # Define variables and bounds
 parameters = {
     'names': ['population', 'relaxation_time', 'doorsize'],
-    'bounds': [[10, 200], [0.5, 0.1], [0.6, 2.4]]
+    'bounds': [[10, 333], [0.06, 0.81], [0.6, 2.7]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable

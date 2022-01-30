@@ -9,7 +9,7 @@ def generate_samples(num_samples: int = 512, second_order: bool = False):
         'num_vars': 4,
         'names': ['max_speed', 'vision', 'soc_strength', 'obs_strength'],
         # TODO: set the bounds for global analysis
-        'bounds': [[4, 6], [1, 2], [1950, 2050], [1950, 2050]]
+        'bounds': [[3, 5], [1, 5], [1000, 3000], [2000, 5000]]
     }
 
     return saltelli.sample(variable_definition, num_samples, calc_second_order=second_order)
