@@ -181,7 +181,7 @@ class SocialForce(Model):
             self.running = False
         
         elif self.max_steps == self.current_timestep:
-            self.evacuation_percentage = self.schedule.get_agent_count() / self.population * 100
+            self.evacuation_percentage = (self.population - self.schedule.get_agent_count()) / self.population * 100
             if len(self.exit_times) > 1:
                 self.flow = (len(self.exit_times) - 1) / (self.exit_times[-1] - self.exit_times[0])
             else:

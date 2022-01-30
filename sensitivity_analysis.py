@@ -15,24 +15,21 @@ from typing import Dict
 # from SALib.analyze import sobol
 
 # Define variables and bounds
-# parameters = {
-#     'names': ['population', 'relaxation_time', 'doorsize'],
-#     'bounds': [[10, 200], [0.5, 0.1], [0.6, 2.4]]
-# }
 parameters = {
-    'names': ['init_desired_speed'],
-    'bounds': [[0.5, 5]]
+    'names': ['population', 'relaxation_time', 'doorsize'],
+    'bounds': [[10, 200], [0.5, 0.1], [0.6, 2.4]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-replicates = 2
-max_steps = 10
-distinct_samples = 4
+replicates = 10
+max_steps = 1000
+distinct_samples = 5
 
 # Set up all the parameters to be entered into the model
 model_params = {
     "width": 15,
     "height": 15,
+    "population": 200,
     "vision": 1,
     "max_speed": 5,
     "timestep": 0.01,
@@ -40,13 +37,11 @@ model_params = {
 }
 
 model_reporters = {
-    #"Number of Humans in Environment": lambda m: m.schedule.get_agent_count(),
-    # "Number of Casualties": lambda m: len(self.obstacles) - self.init_amount_obstacles,
-    # "Average Energy": lambda m: self.count_energy(m) / self.population,
-    #"Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
-    "Exit Times": lambda m: np.mean(m.exit_times),
-    "Evacuation Time": lambda m: m.evacuation_time,
+    "Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0,
     "Flow / Desired Velocity": lambda m: m.flow / m.init_desired_speed,
+    "Exit Times": lambda m: np.mean(m.exit_times),
+    "Evacuation Percentage": lambda m: m.evacuation_percentage,
+    "Evacuation Complete": lambda m: m.evacuation_percentage == 100,
     }
 
 data = {}
@@ -113,7 +108,7 @@ def plot_all_vars(df, params):
     for i, var in enumerate(parameters['names']):
         plot_param_var_conf(axs[i], data[var], var, params, i)
 
-for params in ('Exit Times', 'Evacuation Time'):
+for params in ('Exit Times', 'Evacuation Time', 'Flow / Desired Velocity'):
     plot_all_vars(data, params)
     plt.show()
 

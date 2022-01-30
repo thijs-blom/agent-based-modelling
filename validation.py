@@ -16,7 +16,7 @@ parameters = {
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 replicates = 1
-max_steps = 10000
+max_steps = 100
 distinct_samples = 10
 
 # Set up all the parameters to be entered into the model
@@ -28,10 +28,15 @@ model_params = {
     "max_speed": 5,
     "timestep": 0.01,
     "prob_nearest": 1,
+    "max_steps": max_steps,
 }
 
 model_reporters = {
+    "Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0,
     "Flow / Desired Velocity": lambda m: m.flow / m.init_desired_speed,
+    "Exit Times": lambda m: np.mean(m.exit_times),
+    "Evacuation Percentage": lambda m: m.evacuation_percentage,
+    "Evacuation Complete": lambda m: m.evacuation_percentage == 100,
     }
 
 data = {}
@@ -104,10 +109,11 @@ def plot_all_vars(df, param):
     plt.plot(x, y, c='k')
     plt.fill_between(x, y - err, y + err)
 
-    plt.xlabel("Desired Velocity")
+    plt.xlabel("Desired Velocity (m/s)")
     plt.ylabel(param)
     plt.title("Validation of our model")
 
 
 plot_all_vars(data, 'Flow / Desired Velocity')
+plt.savefig("validation.png")
 plt.show()
