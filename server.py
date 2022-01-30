@@ -48,7 +48,7 @@ def wall_draw(wall: Wall) -> Dict:
 
 
 # Define canvas and charts
-canvas = SimpleCanvas(human_draw, wall_draw, dead_draw, canvas_width=500, canvas_height=500)
+canvas = SimpleCanvas(human_draw, wall_draw, canvas_width=500, canvas_height=500)
 chart1 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#AA0000"}], 10, 25)
 chart2 = ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}], 10, 25)
 chart3 = ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
@@ -90,7 +90,7 @@ model_params = {
     "relaxation_time": UserSettableParameter(
         "slider",
         "Relaxation Time (1/tau)",
-        0..5,
+        0.5,
         0.02,
         0.6,
         0.01,

@@ -37,10 +37,10 @@ model_params = {
 }
 
 model_reporters = {
-    "Flow": lambda m: m.flow,
+    "Flow": lambda m: m.flow(),
     "Exit Times": lambda m: np.mean(m.exit_times),
-    "Evacuation Percentage": lambda m: m.evacuation_percentage,
-    "Evacuation Complete": lambda m: m.evacuation_percentage == 100,
+    "Evacuation Percentage": lambda m: m.evacuation_percentage(),
+    "Evacuation Complete": lambda m: m.evacuation_percentage() == 100,
     }
 
 data = {}

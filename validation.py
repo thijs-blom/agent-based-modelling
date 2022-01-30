@@ -32,10 +32,10 @@ model_params = {
 }
 
 model_reporters = {
-    "Flow / Desired Velocity": lambda m: m.flow / m.init_desired_speed,
+    "Flow / Desired Velocity": lambda m: m.flow() / m.init_desired_speed,
     "Exit Times": lambda m: np.mean(m.exit_times),
-    "Evacuation Percentage": lambda m: m.evacuation_percentage,
-    "Evacuation Complete": lambda m: m.evacuation_percentage == 100,
+    "Evacuation Percentage": lambda m: m.evacuation_percentage(),
+    "Evacuation Complete": lambda m: m.evacuation_percentage() == 100,
     }
 
 data = {}

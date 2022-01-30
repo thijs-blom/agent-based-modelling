@@ -8,7 +8,6 @@ def generate_samples(num_samples: int = 512, second_order: bool = False):
     variable_definition = {
         'num_vars': 4,
         'names': ['max_speed', 'vision', 'soc_strength', 'obs_strength'],
-        # TODO: set the bounds for global analysis
         'bounds': [[3, 5], [1, 5], [1000, 3000], [2000, 5000]]
     }
 

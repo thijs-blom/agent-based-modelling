@@ -73,12 +73,13 @@ def main(input_file: str,
         "door_size": 2,
         "timestep": 0.01,
         "relaxation_time": 1,
-        "max_steps": max_steps,
     }
 
     # Define the statistics we want to collect after a simulation
     model_reporters = {
-        "Exit Times": lambda m: np.mean(m.exit_times)
+        "Exit Times": lambda m: np.mean(m.exit_times),
+        "Flow": lambda m: m.flow(),
+        "Evacuation percentage": lambda m: m.evacuation_percentage(),
     }
 
     # Run the actual samples
