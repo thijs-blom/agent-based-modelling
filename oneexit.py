@@ -17,7 +17,7 @@ class OneExit(SocialForce):
             height: float = 20,
             max_speed: float = 5,
             vision: float = 1,
-            relaxation_time: float = 1,
+            relaxation_time: float = 0.5,
             timestep: float = 0.01,
             init_desired_speed: float = 2.0,
             prob_nearest: float = 1.0,

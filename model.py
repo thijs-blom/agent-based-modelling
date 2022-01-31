@@ -27,8 +27,8 @@ class SocialForce(Model):
     def __init__(
             self,
             population: int = 100,
-            width: float = 100,
-            height: float = 100,
+            width: float = 20,
+            height: float = 20,
             max_speed: float = 5,
             vision: float = 1,
             relaxation_time: float = 0.5,

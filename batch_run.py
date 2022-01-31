@@ -68,13 +68,6 @@ def main(input_file: str,
     # TODO: define the number of steps
     max_steps = 10000
 
-    # Define (non-default) fixed model parameters
-    fixed_model_params = {
-        "door_size": 2,
-        "timestep": 0.01,
-        "relaxation_time": 1,
-    }
-
     # Define the statistics we want to collect after a simulation
     model_reporters = {
         "Mean exit time": lambda m: np.mean(m.exit_times),
@@ -84,7 +77,7 @@ def main(input_file: str,
     }
 
     # Run the actual samples
-    df = batch_run(samples, max_steps, fixed_model_params, model_reporters, processes)
+    df = batch_run(samples, max_steps, {}, model_reporters, processes)
 
     # Write the results
     df.to_csv(output_file)
