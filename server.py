@@ -5,6 +5,7 @@ from mesa.visualization.ModularVisualization import VisualizationElement
 
 from SimpleContinuousModule import SimpleCanvas
 from exit import Exit
+from oneexit import OneExit
 from wall import Wall
 from human import Human
 from model import SocialForce
@@ -100,6 +101,6 @@ model_params = {
 }
 
 # Define and launch the server
-server = ModularServer(SocialForce, [canvas, chart2, chart3], "Escape Panic", model_params)
+server = ModularServer(OneExit, [canvas], "Escape Panic", {})
 
 server.launch()
