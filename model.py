@@ -27,8 +27,8 @@ class SocialForce(Model):
     def __init__(
             self,
             population: int = 100,
-            width: float = 20,
-            height: float = 20,
+            width: float = 15,
+            height: float = 15,
             max_speed: float = 5,
             vision: float = 1,
             relaxation_time: float = 0.5,
@@ -180,8 +180,14 @@ class SocialForce(Model):
     def evacuation_percentage(self):
         return (self.population - self.schedule.get_agent_count()) / self.population * 100
 
-    def flow(self):
+    def evacuation_time(self):
         if len(self.exit_times) == 0:
+            return 0
+        
+        return self.exit_times[-1]
+
+    def flow(self):
+        if len(self.exit_times) < 2:
             return 0
 
         return (len(self.exit_times) - 1) / (self.exit_times[-1] - self.exit_times[0])

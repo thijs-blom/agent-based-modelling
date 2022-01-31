@@ -12,7 +12,7 @@ class OneExit(SocialForce):
 
     def __init__(
             self,
-            population: int = 200,
+            population: int = 100,
             width: float = 15,
             height: float = 15,
             max_speed: float = 5,

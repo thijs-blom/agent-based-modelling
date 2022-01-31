@@ -74,6 +74,7 @@ def main(input_file: str,
         "std exit time": lambda m: np.std(m.exit_times, ddof=1),
         "Flow": lambda m: m.flow(),
         "Evacuation percentage": lambda m: m.evacuation_percentage(),
+        "Evacuation time": lambda m: m.evacuation_time(),
     }
 
     # Run the actual samples
