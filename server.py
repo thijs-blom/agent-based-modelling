@@ -50,9 +50,9 @@ def wall_draw(wall: Wall) -> Dict:
 
 # Define canvas and charts
 canvas = SimpleCanvas(human_draw, wall_draw, canvas_width=500, canvas_height=500)
-chart1 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#AA0000"}], 10, 25)
+chart1 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#0073ff"}], 10, 25)
 chart2 = ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}], 10, 25)
-chart3 = ChartModule([{"Label": "Average Speed", "Color": "#AA0000"}], 10, 25)
+chart3 = ChartModule([{"Label": "Average Speed", "Color": "#47c12f"}], 10, 25)
 
 # hist1 = HistogramModule(np.arange(0, 5, 0.1), height, width)
 
