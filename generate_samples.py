@@ -14,7 +14,7 @@ def generate_samples(num_samples: int = 512, second_order: bool = False):
     return saltelli.sample(variable_definition, num_samples, calc_second_order=second_order)
 
 
-def main(names: List[str]):
+def main(names: List[str], repetitions: int):
     # Calculate the samples
     samples = generate_samples(num_samples=512, second_order=False)
 
@@ -23,8 +23,9 @@ def main(names: List[str]):
     partitions = np.array_split(np.array(samples), num_partitions)
 
     for name, partition in zip(names, partitions):
-        np.save(f"samples/samples_{name}", partition)
+        for i in range(repetitions):
+            np.save(f"samples/samples_{name}_{i+1}", partition)
 
 
 if __name__ == "__main__":
-    main(['Thijs', 'Rina', 'Liza', 'Mercylyn', 'Tamara'])
+    main(['Thijs', 'Rina', 'Liza', 'Mercylyn', 'Tamara'], 5)

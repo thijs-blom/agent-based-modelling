@@ -111,4 +111,4 @@ for params in ('Exit Times', 'Evacuation Time', 'Flow / Desired Velocity'):
     plot_all_vars(data, params)
     plt.show()
 
-file.to_csv(f"SA_Data\OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+file.to_csv(f"SA_Data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")

@@ -66,7 +66,7 @@ def main(input_file: str,
 
     # The maximum number of ticks the simulation will run for
     # TODO: define the number of steps
-    max_steps = 1500
+    max_steps = 10000
 
     # Define (non-default) fixed model parameters
     fixed_model_params = {
@@ -77,7 +77,8 @@ def main(input_file: str,
 
     # Define the statistics we want to collect after a simulation
     model_reporters = {
-        "Exit Times": lambda m: np.mean(m.exit_times),
+        "Mean exit time": lambda m: np.mean(m.exit_times),
+        "std exit time": lambda m: np.std(m.exit_times, ddof=1),
         "Flow": lambda m: m.flow(),
         "Evacuation percentage": lambda m: m.evacuation_percentage(),
     }
