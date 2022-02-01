@@ -16,31 +16,32 @@ from typing import Dict
 
 # Define variables and bounds
 parameters = {
-    'names': ['population', 'relaxation_time', 'doorsize'],
+    'names': ['population', 'relaxation_time', 'door_size'],
     'bounds': [[10, 333], [0.06, 0.81], [0.6, 2.7]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 replicates = 10
-max_steps = 1000
-distinct_samples = 5
+max_steps = 10000
+distinct_samples = 20
 
 # Set up all the parameters to be entered into the model
-model_params = {
-    "width": 15,
-    "height": 15,
-    "population": 200,
-    "vision": 1,
-    "max_speed": 5,
-    "timestep": 0.01,
-    "prob_nearest": 1,
-}
+# model_params = {
+#     "width": 15,
+#     "height": 15,
+#     "population": 100,
+#     "vision": 1,
+#     "max_speed": 5,
+#     "timestep": 0.01,
+#     "prob_nearest": 1,
+# }
 
 model_reporters = {
-    "Flow": lambda m: m.flow(),
-    "Exit Times": lambda m: np.mean(m.exit_times),
-    "Evacuation Percentage": lambda m: m.evacuation_percentage(),
-    "Evacuation Complete": lambda m: m.evacuation_percentage() == 100,
+        "Mean exit time": lambda m: np.mean(m.exit_times),
+        "std exit time": lambda m: np.std(m.exit_times, ddof=1),
+        "Flow": lambda m: m.flow(),
+        "Evacuation percentage": lambda m: m.evacuation_percentage(),
+        "Evacuation time": lambda m: m.evacuation_time(),
     }
 
 data = {}
@@ -58,7 +59,6 @@ for i, var in enumerate(parameters['names']):
     batch = BatchRunner(OneExit,
                         max_steps=max_steps,
                         iterations=replicates,
-                        fixed_parameters=model_params,
                         variable_parameters={var: samples},
                         model_reporters= model_reporters,
                         display_progress=True)
@@ -66,10 +66,11 @@ for i, var in enumerate(parameters['names']):
     file = file.append(batch.get_model_vars_dataframe())
     data[var] = batch.get_model_vars_dataframe()
 
-print(data)
+file.to_csv(f"SA_Data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
 # file.to_csv(f"OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
+# put all the sa analysis to jupyter file later for ploting 
 def plot_param_var_conf(ax, df, var, param, i):
     """
     Helper function for plot_all_vars. Plots the individual parameter vs
@@ -107,8 +108,6 @@ def plot_all_vars(df, params):
     for i, var in enumerate(parameters['names']):
         plot_param_var_conf(axs[i], data[var], var, params, i)
 
-for params in ('Exit Times', 'Evacuation Time', 'Flow / Desired Velocity'):
+for params in ("Mean exit time","std exit time", "Flow", "Evacuation percentage", "Evacuation time"):
     plot_all_vars(data, params)
-    plt.show()
-
-file.to_csv(f"SA_Data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+    plt.savefig(f'SA_Data/OFAT_ParamName{params}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.jpg')
