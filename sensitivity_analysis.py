@@ -16,20 +16,20 @@ from typing import Dict
 
 # Define variables and bounds
 parameters = {
-    'names': ['population', 'relaxation_time', 'doorsize'],
+    'names': ['population', 'relaxation_time', 'door_size'],
     'bounds': [[10, 333], [0.06, 0.81], [0.6, 2.7]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 replicates = 10
-max_steps = 1000
-distinct_samples = 5
+max_steps = 10000
+distinct_samples = 10
 
 # Set up all the parameters to be entered into the model
 model_params = {
     "width": 15,
     "height": 15,
-    "population": 200,
+    "population": 100,
     "vision": 1,
     "max_speed": 5,
     "timestep": 0.01,
@@ -66,10 +66,11 @@ for i, var in enumerate(parameters['names']):
     file = file.append(batch.get_model_vars_dataframe())
     data[var] = batch.get_model_vars_dataframe()
 
-print(data)
+file.to_csv(f"SA_Data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
 # file.to_csv(f"OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
+# put all the sa analysis to jupyter file later for ploting 
 def plot_param_var_conf(ax, df, var, param, i):
     """
     Helper function for plot_all_vars. Plots the individual parameter vs
@@ -107,8 +108,7 @@ def plot_all_vars(df, params):
     for i, var in enumerate(parameters['names']):
         plot_param_var_conf(axs[i], data[var], var, params, i)
 
-for params in ('Exit Times', 'Evacuation Time', 'Flow / Desired Velocity'):
+for params in ('Flow','Exit Times', 'Evacuation Percentage', 'Evacuation Complete'):
     plot_all_vars(data, params)
-    plt.show()
+    plt.savefig(f'SA_Data/OFAT_ParamName{params}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.jpg')
 
-file.to_csv(f"SA_Data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
