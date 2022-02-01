@@ -23,24 +23,25 @@ parameters = {
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 replicates = 10
 max_steps = 10000
-distinct_samples = 10
+distinct_samples = 20
 
 # Set up all the parameters to be entered into the model
-model_params = {
-    "width": 15,
-    "height": 15,
-    "population": 100,
-    "vision": 1,
-    "max_speed": 5,
-    "timestep": 0.01,
-    "prob_nearest": 1,
-}
+# model_params = {
+#     "width": 15,
+#     "height": 15,
+#     "population": 100,
+#     "vision": 1,
+#     "max_speed": 5,
+#     "timestep": 0.01,
+#     "prob_nearest": 1,
+# }
 
 model_reporters = {
-    "Flow": lambda m: m.flow(),
-    "Exit Times": lambda m: np.mean(m.exit_times),
-    "Evacuation Percentage": lambda m: m.evacuation_percentage(),
-    "Evacuation Complete": lambda m: m.evacuation_percentage() == 100,
+        "Mean exit time": lambda m: np.mean(m.exit_times),
+        "std exit time": lambda m: np.std(m.exit_times, ddof=1),
+        "Flow": lambda m: m.flow(),
+        "Evacuation percentage": lambda m: m.evacuation_percentage(),
+        "Evacuation time": lambda m: m.evacuation_time(),
     }
 
 data = {}
@@ -58,7 +59,6 @@ for i, var in enumerate(parameters['names']):
     batch = BatchRunner(OneExit,
                         max_steps=max_steps,
                         iterations=replicates,
-                        fixed_parameters=model_params,
                         variable_parameters={var: samples},
                         model_reporters= model_reporters,
                         display_progress=True)
@@ -108,7 +108,6 @@ def plot_all_vars(df, params):
     for i, var in enumerate(parameters['names']):
         plot_param_var_conf(axs[i], data[var], var, params, i)
 
-for params in ('Flow','Exit Times', 'Evacuation Percentage', 'Evacuation Complete'):
+for params in ("Mean exit time","std exit time", "Flow", "Evacuation percentage", "Evacuation time"):
     plot_all_vars(data, params)
     plt.savefig(f'SA_Data/OFAT_ParamName{params}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.jpg')
-
