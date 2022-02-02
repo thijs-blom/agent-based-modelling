@@ -10,26 +10,26 @@ import numpy as np
 from typing import Dict
 
 parameters = {
-    'names': ['init_desired_speed'],
-    'bounds': [[0.5, 5]]
+    'names': ['prob_nearest'],
+    'bounds': [[0.0, 1.0]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-replicates = 1
-max_steps = 100000
-distinct_samples = 10
+replicates = 10
+max_steps = 3000 # within 30 second performance
+distinct_samples = 11
 
 # Set up all the parameters to be entered into the model
 model_params = {
-    "population": 200,
+    "vision": 5,
 }
 
 model_reporters = {
         "Mean exit time": lambda m: np.mean(m.exit_times),
         "std exit time": lambda m: np.std(m.exit_times, ddof=1),
-        "Flow / Desired Velocity": lambda m: m.flow() / m.init_desired_speed,
+        "Flow": lambda m: m.flow(),
         "Evacuation percentage": lambda m: m.evacuation_percentage(),
-        "Evacuation time": lambda m: m.evacuation_time(),
+        # "Evacuation time": lambda m: m.evacuation_time(),
     }
 
 data = {}
@@ -47,7 +47,7 @@ for i, var in enumerate(parameters['names']):
     batch = BatchRunner(OneExit,
                         max_steps=max_steps,
                         iterations=replicates,
-                        fixed_parameters=model_params,
+                        # fixed_parameters=model_params,
                         variable_parameters={var: samples},
                         model_reporters= model_reporters,
                         display_progress=True)
@@ -56,7 +56,7 @@ for i, var in enumerate(parameters['names']):
     data[var] = batch.get_model_vars_dataframe()
 
 print(data)
-file.to_csv(f"SA_Data/Validation_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+file.to_csv(f"Exp_Data/Exp_Prob_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision5.csv")
 
 def plot_param_var_conf(ax, df, var, param, i):
     """
@@ -78,7 +78,7 @@ def plot_param_var_conf(ax, df, var, param, i):
     plt.plot(x, y, c='k')
     plt.fill_between(x, y - err, y + err)
 
-    plt.set_xlabel("Desired Velocity")
+    plt.set_xlabel("Probability of 'Nearest Exit'")
     plt.set_ylabel(param)
 
 def plot_all_vars(df, param):
@@ -102,11 +102,11 @@ def plot_all_vars(df, param):
     plt.plot(x, y, c='k')
     plt.fill_between(x, y - err, y + err)
 
-    plt.xlabel("Desired Velocity (m/s)")
-    plt.ylabel(r"Pedestrian Flow (m$^{-1}$s$^{-1}$) / Desired Velocity (m/s)")
-    plt.title("Pedestrian Flow Compared to Desired Velocity")
+    plt.xlabel("Probability of 'Nearest Exit'")
+    plt.ylabel(param)
+    plt.title("Strategy Experiment")
 
-
-plot_all_vars(data, 'Flow / Desired Velocity')
-plt.savefig("validation.png")
-plt.show()
+for param in ("Mean exit time", "std exit time","Flow","Evacuation percentage"):
+    plot_all_vars(data, param)
+    plt.savefig(f"Exp_Data//Exp_Prob_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision5.png")
+    plt.show()
