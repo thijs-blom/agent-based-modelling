@@ -8,22 +8,24 @@ from oneexit import OneExit
 import numpy as np
 from typing import Dict
 
+import os
+import sys
+
 parameters = {
-    'names': ['prob_nearest'],
-    'bounds': [[0.0, 1.0]]
+    'names': ['door_size'],
+    'bounds': [[0.6, 2.7]]
 }
 
-def main():
+def main(pop):
     
     # Set the repetitions, the amount of steps, and the amount of distinct values per variable
     replicates = 10
     max_steps = 10000 # within 100 second performance
-    distinct_samples = 11
+    distinct_samples = 20
 
     # Set up all the parameters to be entered into the model
     model_params = {
-        "vision": 2,
-        "population":200
+        "population": int(pop)
     }
 
     model_reporters = {
@@ -42,7 +44,7 @@ def main():
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples)
         
         batch = BatchRunnerMP(OneExit,
-                            nr_processes=4,
+                            nr_processes=2,
                             max_steps=max_steps,
                             iterations=replicates,
                             fixed_parameters=model_params,
@@ -54,7 +56,7 @@ def main():
         data[var] = batch.get_model_vars_dataframe()
 
     print(data)
-    file.to_csv(f"Exp_Data/Exp_Prob_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision2_pop200.csv")
+    file.to_csv(f"Exp_Data/Exp_Door_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{pop}.csv")
     return data
 
 def plot_param_var_conf(ax, df, var, param, i):
@@ -77,7 +79,7 @@ def plot_param_var_conf(ax, df, var, param, i):
         plt.plot(x, y, c='k')
         plt.fill_between(x, y - err, y + err)
 
-        plt.set_xlabel("Probability of 'Nearest Exit'")
+        plt.set_xlabel("Size of exit")
         plt.set_ylabel(param)
 
 def plot_all_vars(data, param):
@@ -101,20 +103,20 @@ def plot_all_vars(data, param):
         plt.plot(x, y, c='k')
         plt.fill_between(x, y - err, y + err)
 
-        plt.xlabel("Probability of 'Nearest Exit'")
+        plt.xlabel("Size of exit")
         plt.ylabel(param)
-        plt.title("Strategy Experiment")
+        plt.title("Exit Size Experiment")
 
 
         
 
 if __name__ == "__main__":
-    data = main()
+    data = main(sys.argv[1])
     # recall the experiment values
     replicates = 10
     max_steps = 10000 # within 100 second performance
-    distinct_samples = 11
+    distinct_samples = 20
     for param in ("Mean exit time", "std exit time","Flow","Evacuation percentage"):
         plot_all_vars(data, param)
-        plt.savefig(f"Exp_Data/Exp_Prob_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision2_pop200.png")
+        plt.savefig(f"Exp_Data/Exp_Prob_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{sys.argv[1]}.png")
         plt.show()
