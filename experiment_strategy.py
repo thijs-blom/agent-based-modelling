@@ -9,39 +9,27 @@ from oneexit import OneExit
 import numpy as np
 from typing import Dict
 
-#sobol
-# import SALib
-# from SALib.sample import saltelli
-# from SALib.analyze import sobol
-
-# Define variables and bounds
 parameters = {
-    'names': ['population', 'relaxation_time', 'door_size'],
-    'bounds': [[10, 333], [0.06, 0.81], [0.6, 2.7]]
+    'names': ['prob_nearest'],
+    'bounds': [[0.0, 1.0]]
 }
 
 # Set the repetitions, the amount of steps, and the amount of distinct values per variable
 replicates = 10
-max_steps = 10000
-distinct_samples = 20
+max_steps = 3000 # within 30 second performance
+distinct_samples = 11
 
 # Set up all the parameters to be entered into the model
-# model_params = {
-#     "width": 15,
-#     "height": 15,
-#     "population": 100,
-#     "vision": 1,
-#     "max_speed": 5,
-#     "timestep": 0.01,
-#     "prob_nearest": 1,
-# }
+model_params = {
+    "vision": 5,
+}
 
 model_reporters = {
         "Mean exit time": lambda m: np.mean(m.exit_times),
         "std exit time": lambda m: np.std(m.exit_times, ddof=1),
         "Flow": lambda m: m.flow(),
         "Evacuation percentage": lambda m: m.evacuation_percentage(),
-        "Evacuation time": lambda m: m.evacuation_time(),
+        # "Evacuation time": lambda m: m.evacuation_time(),
     }
 
 data = {}
@@ -59,6 +47,7 @@ for i, var in enumerate(parameters['names']):
     batch = BatchRunner(OneExit,
                         max_steps=max_steps,
                         iterations=replicates,
+                        # fixed_parameters=model_params,
                         variable_parameters={var: samples},
                         model_reporters= model_reporters,
                         display_progress=True)
@@ -66,11 +55,9 @@ for i, var in enumerate(parameters['names']):
     file = file.append(batch.get_model_vars_dataframe())
     data[var] = batch.get_model_vars_dataframe()
 
-file.to_csv(f"SA_Data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+print(data)
+file.to_csv(f"Exp_Data/Exp_Prob_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision5.csv")
 
-# file.to_csv(f"OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
-
-# put all the sa analysis to jupyter file later for ploting 
 def plot_param_var_conf(ax, df, var, param, i):
     """
     Helper function for plot_all_vars. Plots the individual parameter vs
@@ -88,13 +75,13 @@ def plot_param_var_conf(ax, df, var, param, i):
     replicates = df.groupby(var)[param].count()
     err = (1.96 * df.groupby(var)[param].std()) / np.sqrt(replicates)
 
-    ax.plot(x, y, c='k')
-    ax.fill_between(x, y - err, y + err)
+    plt.plot(x, y, c='k')
+    plt.fill_between(x, y - err, y + err)
 
-    ax.set_xlabel(var)
-    ax.set_ylabel(param)
+    plt.set_xlabel("Probability of 'Nearest Exit'")
+    plt.set_ylabel(param)
 
-def plot_all_vars(df, params):
+def plot_all_vars(df, param):
     """
     Plots the parameters passed vs each of the output variables.
 
@@ -102,12 +89,24 @@ def plot_all_vars(df, params):
         df: dataframe that holds all data
         param: the parameter to be plotted
     """
-
-    f, axs = plt.subplots(3, figsize=(7, 10))
     
-    for i, var in enumerate(parameters['names']):
-        plot_param_var_conf(axs[i], data[var], var, params, i)
+    var = parameters['names'][0]
+    df = data[var]
 
-for params in ("Mean exit time","std exit time", "Flow", "Evacuation percentage", "Evacuation time"):
-    plot_all_vars(data, params)
-    plt.savefig(f'SA_Data/OFAT_ParamName{params}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.jpg')
+    x = df.groupby(var).mean().reset_index()[var]
+    y = df.groupby(var).mean()[param]
+
+    replicates = df.groupby(var)[param].count()
+    err = (1.96 * df.groupby(var)[param].std()) / np.sqrt(replicates)
+
+    plt.plot(x, y, c='k')
+    plt.fill_between(x, y - err, y + err)
+
+    plt.xlabel("Probability of 'Nearest Exit'")
+    plt.ylabel(param)
+    plt.title("Strategy Experiment")
+
+for param in ("Mean exit time", "std exit time","Flow","Evacuation percentage"):
+    plot_all_vars(data, param)
+    plt.savefig(f"Exp_Data//Exp_Prob_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision5.png")
+    plt.show()
