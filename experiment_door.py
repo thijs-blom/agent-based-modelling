@@ -44,7 +44,7 @@ def main(pop):
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples)
         
         batch = BatchRunnerMP(OneExit,
-                            nr_processes=2,
+                            nr_processes=8,
                             max_steps=max_steps,
                             iterations=replicates,
                             fixed_parameters=model_params,
@@ -118,5 +118,5 @@ if __name__ == "__main__":
     distinct_samples = 20
     for param in ("Mean exit time", "std exit time","Flow","Evacuation percentage"):
         plot_all_vars(data, param)
-        plt.savefig(f"Exp_Data/Exp_Prob_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{sys.argv[1]}.png")
+        plt.savefig(f"Exp_Data/Exp_Door_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{sys.argv[1]}.png")
         plt.show()
