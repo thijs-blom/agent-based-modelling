@@ -10,15 +10,15 @@ from typing import Dict
 
 parameters = {
     'names': ['prob_nearest'],
-    'bounds': [[0.0, 1.0]]
+    'bounds': [[0.5, 1.0]]
 }
 
 def main():
     
     # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-    replicates = 10
+    replicates = 5
     max_steps = 10000 # within 100 second performance
-    distinct_samples = 11
+    distinct_samples = 6
 
     # Set up all the parameters to be entered into the model
     model_params = {
@@ -42,7 +42,7 @@ def main():
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples)
         
         batch = BatchRunnerMP(OneExit,
-                            nr_processes=4,
+                            nr_processes=8,
                             max_steps=max_steps,
                             iterations=replicates,
                             fixed_parameters=model_params,
