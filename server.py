@@ -43,7 +43,6 @@ doorsize = 1
 def human_draw(agent: Human) -> Dict:
     return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Red"}
 
-
 def wall_draw(wall: Wall) -> Dict:
     return {"Shape": "line", "w": 5, "Color": "Black"}
 
@@ -73,9 +72,10 @@ model_params = {
     "population": UserSettableParameter(
         "slider",
         "Population",
-        200,
-        1,
+        100,
+        10,
         1000,
+        10,
         description="The initial population",
     ),
     "width": width,
@@ -97,10 +97,12 @@ model_params = {
         0.01,
         description="Relaxation Time"),
     "obstacles": init_obstacles,
-    "exits": [exit]
+    "exits": [exit],
+    "timestep":
 }
 
 # Define and launch the server
-server = ModularServer(OneExit, [canvas], "Escape Panic", {})
+#server = ModularServer(OneExit, [canvas], "Escape Panic", {})
+server = ModularServer(SocialForce, [canvas, chart1, chart2, chart3], "Escape Panic", model_params)
 
 server.launch()

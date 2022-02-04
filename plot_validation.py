@@ -10,7 +10,7 @@ for iteration in files:
     filename=f"SA_Data/Validation_DistinctSamples10_MaxSteps100000_Repi1_{iteration}.csv"
     df = df.append(pd.read_csv(filename))
 
-for iteration in ["1"]:
+for iteration in files:
     filename=f"SA_Data/Validation_DistinctSamples9_MaxSteps100000_Repi1_{iteration}.csv"
     df = df.append(pd.read_csv(filename))
 

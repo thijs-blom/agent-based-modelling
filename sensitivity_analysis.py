@@ -68,8 +68,6 @@ for i, var in enumerate(parameters['names']):
 
 file.to_csv(f"SA_Data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
-# file.to_csv(f"OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
-
 # put all the sa analysis to jupyter file later for ploting 
 def plot_param_var_conf(ax, df, var, param, i):
     """
