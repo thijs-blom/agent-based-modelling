@@ -1,39 +1,28 @@
+import argparse
 import os
-import sys
 from typing import Dict
 
 import numpy as np
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
 
-from model.one_exit import OneExit
-from sample import Sample
+from .one_exit_sample import OneExitSample
+from .sample import Sample
 
 
 def batch_run(samples: np.ndarray,
               max_steps: int,
-              fixed_model_params: Dict,
               model_reporters: Dict,
               processes: int) -> pd.DataFrame:
     # Define the variable parameters used in the model (max_speed, vision, soc_strength, obs_strength)
     sample_list = [Sample(*values) for values in samples]
     variable_params = {"sample": sample_list}
 
-    #TODO: remove fixed parameters
-    # These parameters are passed using variable_params, and _must_ themselves be set to None.
-    fixed_params = fixed_model_params.copy()
-    fixed_params["max_speed"] = None
-    fixed_params["vision"] = None
-    fixed_params["soc_strength"] = None
-    fixed_params["obs_strength"] = None
-
-    # TODO: use OneExitSample
     # Define the batch runner using multiple processes
-    batch = BatchRunnerMP(OneExit,
+    batch = BatchRunnerMP(OneExitSample,
                           nr_processes=processes,
                           max_steps=max_steps,
                           variable_parameters=variable_params,
-                          fixed_parameters=fixed_params,
                           model_reporters=model_reporters)
 
     # Start the parallel processing of the samples
@@ -49,6 +38,7 @@ def batch_run(samples: np.ndarray,
     df["obs_strength"] = df["sample"].apply(lambda s: s.obs_strength)
     df = df.drop(columns=["sample"])
 
+    # TODO: check if this is necessary
     # Reorder the columns to give the same dataframe as if the sample parameters
     # were directly passed as variable parameters. May not be necessary, but might
     # be handy for consistency.
@@ -62,7 +52,6 @@ def batch_run(samples: np.ndarray,
 def main(input_file: str,
          output_file: str,
          processes: int = 4):
-
     # Load the generated samples
     samples = np.load(input_file)
 
@@ -80,30 +69,25 @@ def main(input_file: str,
     }
 
     # Run the actual samples
-    df = batch_run(samples, max_steps, {}, model_reporters, processes)
+    df = batch_run(samples, max_steps, model_reporters, processes)
 
     # Write the results
     df.to_csv(output_file)
 
 
 if __name__ == "__main__":
-    #TODO: use argparser
+    parser = argparse.ArgumentParser(description='Run a batch of simulations for global sensitivity analysis.')
 
-    # Check if a filename has been passed
-    if len(sys.argv) != 3:
-        raise ValueError("Specify the filename as the first argument to collect " +
-                         "the right samples (see the samples directory)")
+    parser.add_argument('filename', type=str, help="Name of the file containing the samples")
+    parser.add_argument('nr_processes', type=int, help="Number of processes to use for computation")
 
-    filename = sys.argv[1]
-    if not os.path.exists(f"samples/{filename}"):
+    args = parser.parse_args()
+
+    if not os.path.exists(f"samples/{args.filename}"):
         raise ValueError("The specified file does not exist. Make sure you have pulled the samples from git " +
                          "and passed the correct filename.")
+
     # Replace the extension with csv for the output file
-    filename_out = filename.split('.')[0] + '.csv'
+    filename_out = args.filename.split('.')[0] + '.csv'
 
-    num_processes = sys.argv[2]
-    if not num_processes.isdigit():
-        raise ValueError("Number of processes must be an integer")
-    num_processes = int(num_processes)
-
-    main(input_file=f"samples/{filename}", output_file=f"data/{filename_out}", processes=num_processes)
+    main(input_file=f"samples/{args.filename}", output_file=f"data/{filename_out}", processes=args.nr_processes)
