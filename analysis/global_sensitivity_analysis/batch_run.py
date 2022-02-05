@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
 
-from model.oneexit import OneExit
+from model.one_exit import OneExit
 from sample import Sample
 
 

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
-from model.oneexit import OneExit
+from model.one_exit import OneExit
 
 import numpy as np
 

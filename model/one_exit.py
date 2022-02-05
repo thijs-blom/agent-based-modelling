@@ -1,7 +1,7 @@
 import numpy as np
 
 from model.exit import Exit
-from model.model import SocialForce
+from model.social_force import SocialForce
 from model.wall import Wall
 
 

@@ -9,7 +9,7 @@ from mesa.batchrunner import BatchRunner
 
 import numpy as np
 
-from model.oneexit import OneExit
+from model.one_exit import OneExit
 
 #sobol
 from SALib.sample import saltelli

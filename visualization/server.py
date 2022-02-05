@@ -4,10 +4,10 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import VisualizationElement
 
-from visualization.SimpleContinuousModule import SimpleCanvas
+from visualization.simple_continuous_module import SimpleCanvas
 from model.exit import Exit
 from model.wall import Wall
-from model.model import SocialForce
+from model.social_force import SocialForce
 
 import numpy as np
 
