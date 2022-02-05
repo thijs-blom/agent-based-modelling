@@ -7,12 +7,12 @@ from socialforce.one_exit import OneExit
 import numpy as np
 
 parameters = {
-        'names': ['init_desired_speed'],
-        'bounds': [[0.5, 5]],
-    }
+    'names': ['init_desired_speed'],
+    'bounds': [[0.5, 5]],
+}
+
 
 def main():
-
     # Set the repetitions, the amount of steps, and the amount of distinct values per variable
     replicates = 1
     max_steps = 100000
@@ -24,13 +24,13 @@ def main():
     }
 
     model_reporters = {
-            "Exit times list": lambda m: m.exit_times,
-            "Mean exit time": lambda m: np.mean(m.exit_times),
-            "std exit time": lambda m: np.std(m.exit_times, ddof=1),
-            "Flow / Desired Velocity": lambda m: m.flow() / m.init_desired_speed,
-            "Evacuation percentage": lambda m: m.evacuation_percentage(),
-            "Evacuation time": lambda m: m.evacuation_time(),
-        }
+        "Exit times list": lambda m: m.exit_times,
+        "Mean exit time": lambda m: np.mean(m.exit_times),
+        "std exit time": lambda m: np.std(m.exit_times, ddof=1),
+        "Flow / Desired Velocity": lambda m: m.flow() / m.init_desired_speed,
+        "Evacuation percentage": lambda m: m.evacuation_percentage(),
+        "Evacuation time": lambda m: m.evacuation_time(),
+    }
 
     data = {}
     file = pd.DataFrame()
@@ -38,23 +38,24 @@ def main():
     for i, var in enumerate(parameters['names']):
         # Get the bounds for this variable and get <distinct_samples> samples within this space (uniform)
         samples = np.linspace(*parameters['bounds'][i], num=distinct_samples)
-        
+
         batch = BatchRunnerMP(OneExit,
-                            nr_processes=4,
-                            max_steps=max_steps,
-                            iterations=replicates,
-                            fixed_parameters=model_params,
-                            variable_parameters={var: samples},
-                            model_reporters= model_reporters,
-                            display_progress=True)
+                              nr_processes=4,
+                              max_steps=max_steps,
+                              iterations=replicates,
+                              fixed_parameters=model_params,
+                              variable_parameters={var: samples},
+                              model_reporters=model_reporters,
+                              display_progress=True)
         batch.run_all()
         file = file.append(batch.get_model_vars_dataframe())
         data[var] = batch.get_model_vars_dataframe()
 
     print(data)
-    file.to_csv(f"SA_Data/Validation_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+    file.to_csv(f"data/Validation_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
     return data
+
 
 def plot_param_var_conf(ax, df, var, param, i):
     """
@@ -79,6 +80,7 @@ def plot_param_var_conf(ax, df, var, param, i):
     plt.set_xlabel("Desired Velocity")
     plt.set_ylabel(param)
 
+
 def plot_all_vars(df, param):
     """
     Plots the parameters passed vs each of the output variables.
@@ -87,7 +89,7 @@ def plot_all_vars(df, param):
         df: dataframe that holds all data
         param: the parameter to be plotted
     """
-    
+
     var = parameters['names'][0]
     df = data[var]
 
@@ -104,9 +106,10 @@ def plot_all_vars(df, param):
     plt.ylabel(r"Pedestrian Flow (m$^{-1}$s$^{-1}$) / Desired Velocity (m/s)")
     plt.title("Pedestrian Flow Compared to Desired Velocity")
 
+
 if __name__ == "__main__":
     data = main()
 
     plot_all_vars(data, 'Flow / Desired Velocity')
-    plt.savefig("validation.png")
+    plt.savefig("images/validation.png")
     plt.show()

@@ -5,7 +5,7 @@ from ast import literal_eval
 
 df = pd.DataFrame()
 
-filename = "SA_Data/Validation_DistinctSamples20_MaxSteps10000_Repi10.csv"
+filename = "data/Validation_DistinctSamples20_MaxSteps10000_Repi10.csv"
 df = df.append(pd.read_csv(filename, converters={'Panic level': literal_eval}))
 
 df = df.sort_values(by=["prob_stressed"])
@@ -31,4 +31,4 @@ for i in range(1, 10):
     plt.xlabel("Time (in s)")
     plt.ylabel("Mean Panic Index")
     plt.title("Panic level")
-    plt.savefig(f"Exp_Data/Exp_plot/panic_plot[{i}].png")
+    plt.savefig(f"images/panic_plot[{i}].png")

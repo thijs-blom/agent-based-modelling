@@ -48,7 +48,7 @@ def main():
         data[var] = batch.get_model_vars_dataframe()
 
     print(data)
-    file.to_csv(f"SA_Data/Validation_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+    file.to_csv(f"data/Exp_Panic_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
 
     return data
 
@@ -107,8 +107,8 @@ if __name__ == "__main__":
     data = main()
 
     plot_all_vars(data, 'Flow')
-    plt.savefig("exp_desired_speed_flow.png")
+    plt.savefig("images/exp_desired_speed_flow.png")
     # Mean
     # plot_all_vars(data, 'Panic level')
-    # plt.savefig("exp_desired_speed_panic.png")
+    # plt.savefig("images/exp_desired_speed_panic.png")
     plt.show()
