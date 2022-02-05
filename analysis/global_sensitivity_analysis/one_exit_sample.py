@@ -1,5 +1,5 @@
-from analysis.global_sensitivity_analysis.sample import Sample
-from model.one_exit import OneExit
+from sample import Sample
+from socialforce.one_exit import OneExit
 
 
 class OneExitSample(OneExit):

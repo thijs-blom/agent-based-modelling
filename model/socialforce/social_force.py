@@ -7,7 +7,6 @@ Uses numpy arrays to represent vectors.
 # Python imports
 from typing import List
 
-import mesa.datacollection
 import numpy as np
 
 # Mesa imports
@@ -17,9 +16,9 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
 # Project imports
-from model.exit import Exit
-from model.human import Human
-from model.obstacle import Obstacle
+from .exit import Exit
+from .human import Human
+from .obstacle import Obstacle
 
 
 class SocialForce(Model):

@@ -3,8 +3,8 @@ from __future__ import annotations
 import numpy as np
 from mesa import Agent
 
-from model.obstacle import Obstacle
-from model.exit import Exit
+from .obstacle import Obstacle
+from .exit import Exit
 
 
 class Human(Agent):

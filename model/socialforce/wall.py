@@ -1,6 +1,6 @@
 import numpy as np
 
-from model.obstacle import Obstacle
+from .obstacle import Obstacle
 
 
 class Wall(Obstacle):

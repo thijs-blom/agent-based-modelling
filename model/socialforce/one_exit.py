@@ -1,8 +1,8 @@
 import numpy as np
 
-from model.exit import Exit
-from model.social_force import SocialForce
-from model.wall import Wall
+from .exit import Exit
+from .social_force import SocialForce
+from .wall import Wall
 
 
 class OneExit(SocialForce):
@@ -37,5 +37,5 @@ class OneExit(SocialForce):
             del kwargs["exits"]
 
 
-# Instantiate SocialForce with the specified walls and exit, passing along any other keyword arguments
+        # Instantiate SocialForce with the specified walls and exit, passing along any other keyword arguments
         super().__init__(obstacles=obstacles, exits=exits, **kwargs)

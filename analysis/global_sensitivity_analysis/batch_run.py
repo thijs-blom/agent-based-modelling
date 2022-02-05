@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
 
-from .one_exit_sample import OneExitSample
-from .sample import Sample
+from one_exit_sample import OneExitSample
+from sample import Sample
 
 
 def batch_run(samples: np.ndarray,

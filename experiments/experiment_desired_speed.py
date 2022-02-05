@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
-from model.one_exit import OneExit
+from socialforce.one_exit import OneExit
 
 import numpy as np
 

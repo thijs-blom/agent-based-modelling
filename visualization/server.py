@@ -5,9 +5,9 @@ from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import VisualizationElement
 
 from visualization.simple_continuous_module import SimpleCanvas
-from model.exit import Exit
-from model.wall import Wall
-from model.social_force import SocialForce
+from socialforce.exit import Exit
+from socialforce.wall import Wall
+from socialforce.social_force import SocialForce
 
 import numpy as np
 
