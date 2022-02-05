@@ -36,6 +36,7 @@ class SocialForce(Model):
             exits: List[Obstacle] = None,
             timestep: float = 0.01,
             init_desired_speed: float = 2.0,
+            prob_stressed: float = 1.0,
             prob_nearest: float = 0.5,
             lst_strategy: list = None,
             soc_strength: float = 2000,
@@ -76,25 +77,26 @@ class SocialForce(Model):
 
         # Variables to keep track of relevant statistics
         self.exit_times = []
+        self.panic_level = []
 
         # Set default strategies if none are given
         if lst_strategy is None:
-            lst_strategy = ['nearest exit', 'hesitator']
+            lst_strategy = ['nearest exit', 'follow the leader']
 
         # Set up the model
         self.schedule = RandomActivation(self)
         self.space = ContinuousSpace(width, height, False)
-        self.make_agents(lst_strategy, prob_nearest)
+        self.make_agents(lst_strategy, prob_nearest, prob_stressed)
 
         # self.datacollector = DataCollector(
         #     model_reporters={
         #         "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
-        #         "Average Panic": lambda m: self.count_panic() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0,
+        #         "Average Panic": lambda m: self.count_panic(),
         #         "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
         #     })
+        # self.datacollector.collect(self)
 
         self.running = True
-        # self.datacollector.collect(self)
 
     def count_speed(self):
         """
@@ -109,10 +111,22 @@ class SocialForce(Model):
         """
         Helper method to count trees in a given condition in a given model.
         """
-        panics = 0
+        panic = 0
         for human in self.schedule.agents:
-            panics += human.panic_index()
-        return panics
+            panic += human.panic_index()
+        n = self.schedule.get_agent_count()
+        if n > 0:
+            panic /= n
+        return panic
+
+    def count_desired_speed(self):
+        desired_speed = 0
+        for human in self.schedule.agents:
+            desired_speed += human.init_desired_speed
+        n = self.schedule.get_agent_count()
+        if n > 0:
+            desired_speed /= n
+        return desired_speed
 
     @staticmethod
     def random_select_strategy(strategy_option, prob_nearest):
@@ -123,7 +137,7 @@ class SocialForce(Model):
         else:
             return strategy_option[1]
 
-    def make_agents(self, strategy_option, prob_nearest):
+    def make_agents(self, strategy_option, prob_nearest, prob_stressed):
         """
         Create self.population agents, with random positions and starting headings.
         """
@@ -132,13 +146,12 @@ class SocialForce(Model):
             y = self.random.random() * self.space.y_max
             pos = np.array((x, y))
             lam = np.random.uniform(0.7,0.95)
-            velocity = (np.random.random(2)-0.5) 
-            # don't know what is mass yet
+            velocity = (np.random.random(2)-0.5)
             mass = np.random.uniform(50, 80)
             radius = np.random.uniform(0.37,0.55)/2
             current_timestep = 0
             init_speed = np.random.random()
-            init_desired_speed = self.init_desired_speed
+            init_desired_speed = self.init_desired_speed #np.random.normal(2, 0.15) if np.random.random() < prob_stressed else np.random.normal(1, 0.15)
             relax_t = self.relaxation_time
             strategy = self.random_select_strategy(strategy_option, prob_nearest)
             human = Human(
@@ -165,7 +178,10 @@ class SocialForce(Model):
         self.schedule.step()
 
         # Save the statistics
-        # self.datacollector.collect(self)
+        #self.datacollector.collect(self)
+
+        # For experiment with different initial speeds
+        # self.panic_level.append(self.count_panic())
 
         if self.schedule.get_agent_count() == 0:
             self.running = False

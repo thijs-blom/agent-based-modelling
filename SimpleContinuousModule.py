@@ -7,12 +7,10 @@ class SimpleCanvas(VisualizationElement):
     canvas_height = 500
     canvas_width = 500
 
-    def __init__(self, agent_portrayal, wall_portrayal, canvas_width, canvas_height):
+    def __init__(self, canvas_width, canvas_height):
         """
         Instantiate a new SimpleCanvas
         """
-        self.agent_portrayal = agent_portrayal
-        self.wall_portrayal = wall_portrayal
         self.canvas_height = canvas_height
         self.canvas_width = canvas_width
         new_element = "new Simple_Continuous_Module({}, {})".format(
@@ -23,11 +21,10 @@ class SimpleCanvas(VisualizationElement):
     def render(self, model):
         space_state = []
         for obj in model.schedule.agents:
+            brightness = round(100 - obj.panic * 100)
+            portrayal = {"Shape": "circle", "r": obj.radius * (self.canvas_width / model.space.x_max), "Filled": "true", "Color": f"rgb(255, {brightness}, {brightness * 1.4})"}
             if obj.strategy != 'nearest exit':
-                portrayal = {"Shape": "circle", "r": obj.radius * (self.canvas_width / model.space.x_max), "Filled": "true", "Color": "Blue"}
-            else:
-                portrayal = self.agent_portrayal(obj)
-                portrayal["r"] = obj.radius * (self.canvas_width / model.space.x_max)
+                portrayal['Color'] = f"rgb({brightness}, {brightness * 2}, 255)"
             x, y = obj.pos
             x1 = x / model.space.x_max
             y1 = y / model.space.y_max
@@ -36,7 +33,7 @@ class SimpleCanvas(VisualizationElement):
             space_state.append(portrayal)
 
         for obj in model.obstacles:
-            portrayal = self.wall_portrayal(obj)
+            portrayal = {"Shape": "line", "w": 5, "Color": "Black"}
 
             x1 = obj.p1[0] * (self.canvas_width / model.space.x_max)
             y1 = obj.p1[1] * (self.canvas_height / model.space.y_max)

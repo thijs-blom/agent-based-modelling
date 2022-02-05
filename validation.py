@@ -11,7 +11,7 @@ from typing import Dict
 
 parameters = {
         'names': ['init_desired_speed'],
-        'bounds': [[0.75, 4.75]],
+        'bounds': [[0.5, 5]],
     }
 
 def main():
@@ -19,7 +19,7 @@ def main():
     # Set the repetitions, the amount of steps, and the amount of distinct values per variable
     replicates = 1
     max_steps = 100000
-    distinct_samples = 9
+    distinct_samples = 19
 
     # Set up all the parameters to be entered into the model
     model_params = {

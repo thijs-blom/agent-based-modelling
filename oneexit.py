@@ -20,6 +20,7 @@ class OneExit(SocialForce):
             relaxation_time: float = 0.5,
             timestep: float = 0.01,
             init_desired_speed: float = 2.0,
+            prob_stressed: float = 1.0,
             prob_nearest: float = 1.0,
             door_size: float = 1,
             soc_strength: float = 2000,

@@ -9,10 +9,11 @@ df = pd.DataFrame()
 for iteration in files:
     filename=f"SA_Data/Validation_DistinctSamples10_MaxSteps100000_Repi1_{iteration}.csv"
     df = df.append(pd.read_csv(filename))
-
-for iteration in files:
     filename=f"SA_Data/Validation_DistinctSamples9_MaxSteps100000_Repi1_{iteration}.csv"
     df = df.append(pd.read_csv(filename))
+    filename=f"SA_Data/Validation_DistinctSamples19_MaxSteps100000_Repi1_{iteration}.csv"
+    df = df.append(pd.read_csv(filename))
+
 
 x = df.groupby("init_desired_speed").mean().reset_index()["init_desired_speed"]
 y = df.groupby("init_desired_speed").mean()["Flow / Desired Velocity"]

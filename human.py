@@ -78,6 +78,7 @@ class Human(Agent):
         self.strategy = strategy
         self.speed = init_speed
         self.avg_progress = init_speed
+        self.panic = 0
 
     def desired_dir(self) -> np.ndarray:
         """ Compute the desired direction of the agent
@@ -96,6 +97,18 @@ class Human(Agent):
             neighbor_dir = self.neighbor_direction(self.velocity)
             neighbor_dir /= np.linalg.norm(neighbor_dir)
             dir = neighbor_dir
+
+        elif self.strategy == 'follow the leader':
+            # Only follow the direction your neighbours are following
+            self.dest = self.nearest_exit().get_center()            
+            if np.linalg.norm(self.pos - self.dest) < self.vision:
+                dir = self.dest - self.pos
+                dir /= np.linalg.norm(dir)
+                self.strategy = 'nearest exit'
+            else:
+                neighbor_dir = self.leader_direction(self.velocity)
+                neighbor_dir /= np.linalg.norm(neighbor_dir)
+                dir = neighbor_dir
 
         elif self.strategy == 'hesitator':
             self.dest = self.nearest_exit().get_center()
@@ -138,11 +151,11 @@ class Human(Agent):
 
     def least_crowded_exit(self) -> Exit:
         # define exit business as a dictionary
-        busyness = {}
+        business = {}
         for i, exit in enumerate(self.model.exits):
             # exit_name = f'exit{i}'
-            busyness[i] = len(self.model.space.get_neighbors(exit.get_center(), 10, False))
-        nb_exit = min(busyness, key=busyness.get)
+            business[i] = len(self.model.space.get_neighbors(exit.get_center(), 10, False))
+        nb_exit = min(business, key=business.get)
         return self.model.exits[nb_exit]
 
     def neighbor_direction(self, origin_dir: np.ndarray) -> np.ndarray:
@@ -159,6 +172,28 @@ class Human(Agent):
         # TODO: check if it is desirable that the velocity may not be normalized if there are no neighbours
         return sum_of_direction
 
+    def leader_direction(self, origin_dir: np.ndarray) -> np.ndarray:
+        repeat = True
+        vision_times = 1
+
+        dir = origin_dir
+
+        while repeat == True and vision_times <= 3:
+            # find the neighbors' direction
+            neighbours = self.model.space.get_neighbors(self.pos, self.vision * vision_times, False)
+            # original direction is the same as the nearest exit
+
+            for other in neighbours:
+                if other.strategy == "nearest exit":
+                    dir = (other.pos - other.velocity * self.model.timestep) - self.pos
+                    dir /= np.linalg.norm(dir)
+                    repeat = False
+                    break
+            
+            vision_times += 1
+
+        return dir
+
     def panic_index(self, desired_dir: np.ndarray = None):
         """Compute the panic index of agent using average speed"""
         # Compute average speed into desired direction for the agent
@@ -168,8 +203,11 @@ class Human(Agent):
             # progress can be either negative and positive
             progress_t = np.dot(self.velocity, desired_dir)
             self.avg_progress = (self.avg_progress * (self.timestep - 1) + progress_t) / self.timestep
-
-        return 1 - self.avg_progress / self.init_desired_speed
+        panic = 1 - self.avg_progress / self.init_desired_speed
+        if panic < 0:
+            return 0
+        else:
+            return panic
 
     def desired_speed(self, panic_index: float = None):
         """ Compute the current desired speed of agent : v0_i(t)"""
@@ -249,10 +287,10 @@ class Human(Agent):
         Compute all forces acting on this agent, update its velocity and move.
         """
         desired_dir = self.desired_dir()
-        panic_index = self.panic_index(desired_dir)
+        self.panic = self.panic_index(desired_dir)
 
         # Compute acceleration term of agent
-        f_acc = self.acceleration_term(desired_dir, panic_index)
+        f_acc = self.acceleration_term(desired_dir, self.panic)
 
         # Handle the repulsive effects from other people
         f_soc = np.zeros(2)
