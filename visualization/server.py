@@ -1,17 +1,15 @@
+from mesa.datacollection import DataCollector
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import VisualizationElement
 
-from model.obstacle import Obstacle
 from visualization.SimpleContinuousModule import SimpleCanvas
 from model.exit import Exit
 from model.wall import Wall
-from model.human import Human
 from model.model import SocialForce
 
 import numpy as np
-from typing import Dict, List, Callable
 
 
 # TODO: Check if we want to keep histogram, and perhaps cite it?
@@ -35,37 +33,45 @@ class HistogramModule(VisualizationElement):
         return [int(x) for x in hist]
 
 
-def graphical_elements(width: float, height: float) -> List[VisualizationElement]:
-    canvas = SimpleCanvas(canvas_width=width, canvas_height=height)
-    chart1 = ChartModule([{"Label": "Number of Humans in Environment", "Color": "#0073ff"}], 10, 25)
-    chart2 = ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}], 10, 25)
-    chart3 = ChartModule([{"Label": "Average Speed", "Color": "#47c12f"}], 10, 25)
+# Visualization parameters
+canvas_width = 500
+canvas_height = 500
+
+# Model parameters
+width = 15
+height = 15
+door_size = 1
+
+visualization_elements = [
+    SimpleCanvas(canvas_width=canvas_width, canvas_height=canvas_height),
+    ChartModule([{"Label": "Number of Humans in Environment", "Color": "#0073ff"}], 10, 25),
+    ChartModule([{"Label": "Average Panic", "Color": "#AA0000"}], 10, 25),
+    ChartModule([{"Label": "Average Speed", "Color": "#47c12f"}], 10, 25),
     # hist1 = HistogramModule(np.arange(0, 5, 0.1), height, width)
+]
 
-    return [canvas, chart1, chart2, chart3]
-
-
-def obstacles(width: float, height: float, doorsize: float) -> List[Obstacle]:
-    # Define all walls in the system
-    return [
-        Wall(np.array([0, 0]), np.array([0, height/2 - doorsize/2])),
-        Wall(np.array([0, height/2 + doorsize/2]), np.array([0, height])),
+obstacles = [
+        Wall(np.array([0, 0]), np.array([0, height/2 - door_size/2])),
+        Wall(np.array([0, height/2 + door_size/2]), np.array([0, height])),
         Wall(np.array([0, 0]), np.array([width, 0])),
         Wall(np.array([width, 0]), np.array([width, height])),
-        Wall(np.array([0, height]), np.array([width/2 - doorsize/2, height])),
-        Wall(np.array([width/2 + doorsize/2, height]), np.array([width, height])),
+        Wall(np.array([0, height]), np.array([width/2 - door_size/2, height])),
+        Wall(np.array([width/2 + door_size/2, height]), np.array([width, height])),
     ]
 
-
-def exits(width: float, height: float, doorsize: float):
-    return [
-        Exit(np.array([width/2 - doorsize/2, height]), np.array([width/2 + doorsize/2, height])),
-        Exit(np.array([0, height/2 - doorsize/2]), np.array([0, height/2 + doorsize/2])),
+exits = [
+        Exit(np.array([width/2 - door_size/2, height]), np.array([width/2 + door_size/2, height])),
+        Exit(np.array([0, height/2 - door_size/2]), np.array([0, height/2 + door_size/2])),
     ]
 
+datacollector = DataCollector(
+    model_reporters={
+        "Number of Humans in Environment": lambda m: m.schedule.get_agent_count(),
+        "Average Panic": lambda m: m.count_panic(),
+        "Average Speed": lambda m: m.count_speed() / m.schedule.get_agent_count() if m.schedule.get_agent_count() > 0 else 0
+    })
 
-def model_parameters(width: float, height: float, obstacle_list: List[Obstacle], exits: List[Exit]) -> Dict:
-    return {
+model_parameters = {
         "population": UserSettableParameter(
             "slider",
             "Population",
@@ -93,22 +99,19 @@ def model_parameters(width: float, height: float, obstacle_list: List[Obstacle],
             0.6,
             0.01,
             description="Relaxation Time"),
-        "obstacles": obstacle_list,
+        "obstacles": obstacles,
         "exits": exits,
+        "datacollector": datacollector
     }
 
 
-# TODO: Find nicer way to do all these default settings, perhaps just OneExit?
 def launch():
-    width = 15
-    height = 15
-    doorsize = 1
-
+    # TODO: perhaps use OneExit for default visualization?
     server = ModularServer(
         model_cls=SocialForce,
-        visualization_elements=graphical_elements(width, height),
+        visualization_elements=visualization_elements,
         name="Room evacuation with panic",
-        model_params=model_parameters(width, height, obstacles(width, height, doorsize), exits(width, height, doorsize))
+        model_params=model_parameters
     )
 
     server.launch()

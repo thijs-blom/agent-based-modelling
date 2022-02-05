@@ -6,6 +6,8 @@ Uses numpy arrays to represent vectors.
 """
 # Python imports
 from typing import List
+
+import mesa.datacollection
 import numpy as np
 
 # Mesa imports
@@ -24,7 +26,6 @@ class SocialForce(Model):
     """
     Social Force model. Handles agent creation, placement, exiting and scheduling.
     """
-    # TODO: make datacollector an optional parameter?
     def __init__(
             self,
             population: int = 100,
@@ -45,7 +46,8 @@ class SocialForce(Model):
             bfc: float = 120000,
             sfc: float = 240000,
             obs_strength: float = 5000,
-            obs_range: float = 0.08
+            obs_range: float = 0.08,
+            datacollector: DataCollector = None
     ):
         """
         Create a new instance of the social force model.
@@ -79,6 +81,7 @@ class SocialForce(Model):
         # Variables to keep track of relevant statistics
         self.exit_times = []
         self.panic_level = []
+        self.datacollector = datacollector
 
         # Set default strategies if none are given
         if lst_strategy is None:
@@ -89,13 +92,8 @@ class SocialForce(Model):
         self.space = ContinuousSpace(width, height, False)
         self.make_agents(lst_strategy, prob_nearest, prob_stressed)
 
-        # self.datacollector = DataCollector(
-        #     model_reporters={
-        #         "Number of Humans in Environment": lambda m: self.schedule.get_agent_count(),
-        #         "Average Panic": lambda m: self.count_panic(),
-        #         "Average Speed": lambda m: self.count_speed() / self.schedule.get_agent_count() if self.schedule.get_agent_count() > 0 else 0
-        #     })
-        # self.datacollector.collect(self)
+        if self.datacollector:
+            self.datacollector.collect(self)
 
         self.running = True
 
@@ -179,7 +177,8 @@ class SocialForce(Model):
         self.schedule.step()
 
         # Save the statistics
-        #self.datacollector.collect(self)
+        if self.datacollector:
+            self.datacollector.collect(self)
 
         # For experiment with different initial speeds
         # self.panic_level.append(self.count_panic())
