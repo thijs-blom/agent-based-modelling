@@ -36,6 +36,5 @@ class OneExit(SocialForce):
             # TODO: do we want to add them to the model? Since it's called _One_ExitModel
             del kwargs["exits"]
 
-
         # Instantiate SocialForce with the specified walls and exit, passing along any other keyword arguments
-        super().__init__(obstacles=obstacles, exits=exits, **kwargs)
+        super().__init__(width=width, height=height, obstacles=obstacles, exits=exits, **kwargs)
