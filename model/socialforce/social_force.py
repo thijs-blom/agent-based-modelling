@@ -23,7 +23,7 @@ from .obstacle import Obstacle
 
 class SocialForce(Model):
     """
-    Social Force model. Handles agent creation, placement, exiting and scheduling.
+    Implementation of the Social Force model. Handles agent creation, placement, exiting and scheduling.
     """
     def __init__(
             self,
@@ -37,8 +37,8 @@ class SocialForce(Model):
             exits: List[Exit] = None,
             timestep: float = 0.01,
             init_desired_speed: float = 2.0,
-            prob_stressed: float = 1.0,
-            prob_nearest: float = 0.5,
+            prob_stressed: float = None,
+            prob_nearest: float = 1.0,
             lst_strategy: list = None,
             soc_strength: float = 2000,
             soc_range: float = 0.08,
@@ -52,12 +52,12 @@ class SocialForce(Model):
         Create a new instance of the social force model.
 
         Args:
-            population: Number of Boids
+            population: Number of agents in the space.
             width, height: Size of the space.
-            max_speed: TODO
-            vision: How far around should each agent look for its neighbours
-            obstacles: A list of obstacles agents must avoid
-            exits: A list of exits where users leave the room
+            max_speed: the maximum speed the agents can achieve.
+            vision: How far around should each agent look for its neighbours.
+            obstacles: A list of obstacles agents must avoid.
+            exits: A list of exits where agents leave the room.
         """
         # Set model parameters
         self.population = population
@@ -149,7 +149,10 @@ class SocialForce(Model):
             radius = np.random.uniform(0.37,0.55)/2
             current_timestep = 0
             init_speed = np.random.random()
-            init_desired_speed = self.init_desired_speed #np.random.normal(2, 0.15) if np.random.random() < prob_stressed else np.random.normal(1, 0.15)
+            if prob_stressed != None:
+                init_desired_speed = np.random.normal(2, 0.15) if np.random.random() < prob_stressed else np.random.normal(1, 0.15)
+            else:
+                init_desired_speed = self.init_desired_speed
             relax_t = self.relaxation_time
             strategy = self.random_select_strategy(strategy_option, prob_nearest)
             human = Human(
