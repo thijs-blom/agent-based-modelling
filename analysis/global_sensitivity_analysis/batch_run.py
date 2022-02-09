@@ -38,7 +38,6 @@ def batch_run(samples: np.ndarray,
     df["obs_strength"] = df["sample"].apply(lambda s: s.obs_strength)
     df = df.drop(columns=["sample"])
 
-    # TODO: check if this is necessary
     # Reorder the columns to give the same dataframe as if the sample parameters
     # were directly passed as variable parameters. May not be necessary, but might
     # be handy for consistency.
@@ -84,8 +83,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.exists(f"samples/{args.filename}"):
-        raise ValueError("The specified file does not exist. Make sure you have pulled the samples from git " +
-                         "and passed the correct filename.")
+        raise ValueError("The specified file does not exist. Check the samples directory for possible filenames")
 
     # Replace the extension with csv for the output file
     filename_out = args.filename.split('.')[0] + '.csv'

@@ -5,6 +5,7 @@ from .obstacle import Obstacle
 
 class Wall(Obstacle):
     """A one-dimensional wall, represented by a line-segment"""
+
     def __init__(self, p1: np.ndarray, p2: np.ndarray):
         """Initialise a wall obstacle
 
@@ -20,9 +21,16 @@ class Wall(Obstacle):
         self.width = np.linalg.norm(self.p1 - self.p2)
         self.width2 = self.width * self.width
 
-    def get_closest_point(self, agent_point: np.ndarray) -> np.ndarray:
-        """Compute the closest point of the obstacle to the given point"""
-        d = np.dot(agent_point - self.p1, self.p2 - self.p1) / self.width2
+    def get_closest_point(self, agent_pos: np.ndarray) -> np.ndarray:
+        """Compute the closest point of the obstacle to the given point
+
+        Args:
+            agent_pos (np.ndarray): The position of the agent
+
+        Returns:
+            The point of the obstacle closest to the agent:
+        """
+        d = np.dot(agent_pos - self.p1, self.p2 - self.p1) / self.width2
 
         if d <= 0:
             return self.p1

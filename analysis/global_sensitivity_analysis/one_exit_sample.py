@@ -4,6 +4,7 @@ from socialforce.one_exit import OneExit
 
 class OneExitSample(OneExit):
     """Model for evacuation through a single exit, with a sample parameter for global sensitivity analysis"""
+
     def __init__(self, sample: Sample):
         """
         Args:
