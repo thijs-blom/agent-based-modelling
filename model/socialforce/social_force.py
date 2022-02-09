@@ -60,7 +60,7 @@ class SocialForce(Model):
             exits: A list of exits in the simulated space that allow agents to leave the system
             timestep: The amount of time simulated by a single step of the simulation (s)
             init_desired_speed: The speed an agent initially wants to move at (m/s)
-            prob_stressed: TODO set this
+            prob_stressed: Parameter to describe probability of an agent being stressed (see experiments)
             strategies: The strategies an agent may be assigned on initialization
             strategy_weights: The probabilities corresponding to the passed strategies.
                               May only be set if strategies is set.
