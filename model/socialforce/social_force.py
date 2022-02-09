@@ -22,7 +22,7 @@ from .obstacle import Obstacle
 
 
 class SocialForce(Model):
-    """Social Force model. Handles agent creation, placement, exiting and scheduling."""
+    """Implementation of the social force model. Handles agent creation, placement, exiting and scheduling."""
 
     def __init__(
             self,
@@ -36,7 +36,7 @@ class SocialForce(Model):
             exits: List[Exit] = None,
             timestep: float = 0.01,
             init_desired_speed: float = 2.0,
-            prob_stressed: float = 1.0,
+            prob_stressed: float = None,
             strategies: list = None,
             strategy_weights: list = None,
             soc_strength: float = 2000,
@@ -140,7 +140,14 @@ class SocialForce(Model):
             # Determine the agent's initial speed
             velocity = np.random.random(2) - 0.5
             init_speed = np.linalg.norm(velocity)
-            init_desired_speed = self.init_desired_speed  # np.random.normal(2, 0.15) if np.random.random() < prob_stressed else np.random.normal(1, 0.15)
+            if prob_stressed is None:
+                init_desired_speed = self.init_desired_speed
+            else:
+                if np.random.random() < prob_stressed:
+                    mu = 2
+                else:
+                    mu = 1
+                init_desired_speed = np.random.normal(mu, 0.15)
 
             # Initialize the agent
             human = Human(
