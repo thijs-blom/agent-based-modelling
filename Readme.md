@@ -1,7 +1,8 @@
 ## Social Force Model
 
-The model was adapted and tuned according to the equations and values from this paper: Helbing, D., Farkas, I. J., Molnar, P., & Vicsek, T. (2002). Simulation of pedestrian crowds in normal and evacuation situations. Pedestrian and evacuation dynamics, 21(2), 21-58.
-We implemented the sensitivity analysis ourselves.
+This project contains an implementation of the social force model, a global and local sensitivity analysis, experiments and a visualization.
+
+The model description, equations, and parameter values are adapted from the paper "Helbing, D., Farkas, I. J., Molnar, P., & Vicsek, T. (2002). Simulation of pedestrian crowds in normal and evacuation situations. Pedestrian and evacuation dynamics, 21(2), 21-58".
 
 # Table of Contents
 * [Social Force Model](#social-force-model)
@@ -119,3 +120,15 @@ The resulting plots will be stored in the `images` subdirectory.
 ## Running the experiments
 Experiments are stored in the `experiments` directory.
 Resulting data and plots/visualizations can be found in the `data` subdirectory and the `images` subdirectory respectively.
+
+The actual experiments are contained in
+* `experiment_door.py`,
+* `experiment_strategy.py`,
+* `experiment_stress.py`.
+
+These are all self-contained scripts and can be run using `python ./script_name.py`.
+only `experiment_door.py` takes a command-line argument (population size) and should be run as `python ./experiment_door.py <pop_size>`.
+
+These scripts each create plots and store them in the `images` subdirectory.
+Additional plots for the stress experiment can be obtained by running `experiment_stress_plots.py`.
+Likewise, additional plots for the door size experiment can be found by running `jupyter-notebook Data_Analysis_Door.ipynb`.
