@@ -2,9 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from ast import literal_eval
+from pathlib import Path
 
 df = pd.DataFrame()
-filename = "experiments/data/Exp_Stress_DistinctSamples20_MaxSteps10000_Repi10.csv"
+filename = Path(__file__).parent / "data/Exp_Stress_DistinctSamples20_MaxSteps10000_Repi10.csv"
 df = df.append(pd.read_csv(filename, converters={'Panic level': literal_eval}))
 
 
@@ -18,7 +19,7 @@ plt.fill_between(x, y - err, y + err, alpha=0.7)
 plt.xlabel("Probability Stressed")
 plt.ylabel("Evacuation Time (s)")
 plt.title("Evacuation Time based on Percetnage of Stressed People")
-plt.savefig("experiments/images/exp_desired_speed_evactime.png")
+plt.savefig(Path(__file__).parent / "images/exp_desired_speed_evactime.png")
 plt.show()
 
 # Plot flow
@@ -31,7 +32,7 @@ plt.fill_between(x, y - err, y + err, alpha=0.7)
 plt.xlabel("Probability Stressed")
 plt.ylabel("Flow (s)")
 plt.title("OutfLow based on Percetnage of Stressed People")
-plt.savefig("experiments/images/exp_desired_speed_flow.png")
+plt.savefig(Path(__file__).parent / "images/exp_desired_speed_flow.png")
 plt.show()
 
 # Plot Std exit times
@@ -44,7 +45,7 @@ plt.fill_between(x, y - err, y + err, alpha=0.7)
 plt.xlabel("Probability Stressed")
 plt.ylabel("Standard Deviation Exit Times (s)")
 plt.title("Standard Deviation of the Exit Times Based on Percentage of Stressed People")
-plt.savefig("experiments/images/exp_desired_speed_std.png")
+plt.savefig(Path(__file__).parent / "images/exp_desired_speed_std.png")
 plt.show()
 
 # Plot panic
@@ -72,4 +73,4 @@ for i in range(1, 10):
 plt.xlabel("Time (in s)")
 plt.ylabel("Mean Panic Index")
 plt.title("Panic level")
-plt.savefig("experiments/images/panic_plot.png")
+plt.savefig(Path(__file__).parent / "images/panic_plot.png")
