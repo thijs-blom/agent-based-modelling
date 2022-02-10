@@ -22,6 +22,8 @@ plt.title("Evacuation Time based on Percetnage of Stressed People")
 plt.savefig(Path(__file__).parent / "images/exp_desired_speed_evactime.png")
 plt.show()
 
+plt.clf()
+
 # Plot flow
 x = df.groupby("prob_stressed").mean().reset_index()["prob_stressed"]
 y = df.groupby("prob_stressed").mean()["Flow"]
@@ -35,6 +37,8 @@ plt.title("OutfLow based on Percetnage of Stressed People")
 plt.savefig(Path(__file__).parent / "images/exp_desired_speed_flow.png")
 plt.show()
 
+plt.clf()
+
 # Plot Std exit times
 x = df.groupby("prob_stressed").mean().reset_index()["prob_stressed"]
 y = df.groupby("prob_stressed").mean()["std exit time"]
@@ -47,6 +51,8 @@ plt.ylabel("Standard Deviation Exit Times (s)")
 plt.title("Standard Deviation of the Exit Times Based on Percentage of Stressed People")
 plt.savefig(Path(__file__).parent / "images/exp_desired_speed_std.png")
 plt.show()
+
+plt.clf()
 
 # Plot panic
 panic_data = df.sort_values(by=["prob_stressed"])

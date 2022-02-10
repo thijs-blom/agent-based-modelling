@@ -1,6 +1,8 @@
 """
 Script for local sensitivity analysis using OFAT
 """
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from mesa.batchrunner import BatchRunner
@@ -59,7 +61,10 @@ for i, var in enumerate(parameters['names']):
     file = file.append(batch.get_model_vars_dataframe())
     data[var] = batch.get_model_vars_dataframe()
 
-file.to_csv(f"data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+file.to_csv(
+    Path(__file__).parent /
+    f"data/OFAT_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv"
+)
 
 
 # put all the sa analysis to jupyter file later for ploting
@@ -104,4 +109,7 @@ def plot_all_vars(df, params):
 
 for params in ("Mean exit time", "std exit time", "Flow", "Evacuation percentage", "Evacuation time"):
     plot_all_vars(data, params)
-    plt.savefig(f'images/OFAT_ParamName{params}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.jpg')
+    plt.savefig(
+        Path(__file__).parent /
+        f"images/OFAT_ParamName{params}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.jpg"
+    )

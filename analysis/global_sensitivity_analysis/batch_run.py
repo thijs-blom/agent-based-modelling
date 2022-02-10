@@ -86,6 +86,6 @@ if __name__ == "__main__":
         raise ValueError("The specified file does not exist. Check the samples directory for files")
 
     # Replace the extension with csv for the output file
-    file_out = Path(f"data/{args.file.stem}.csv")
+    file_out = Path(__file__).parent / f"data/{args.file.stem}.csv"
 
     main(input_file=args.file, output_file=file_out, processes=args.nr_processes)
