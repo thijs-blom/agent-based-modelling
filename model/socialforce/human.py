@@ -111,7 +111,7 @@ class Human(Agent):
             neighbor_dir = self.neighbor_direction(dest_dir)
             neighbor_dir /= np.linalg.norm(neighbor_dir)
 
-            # if exit is within 50 meters, the destination is the nearest exit
+            # If exit is within vision meters, the destination is the nearest exit
             # otherwise the destination is a mixed a nearest exit and the neighbors
             dir = neighbor_dir
             if np.linalg.norm(self.pos - self.dest) > self.vision:
