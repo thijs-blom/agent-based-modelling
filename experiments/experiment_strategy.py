@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
@@ -10,20 +12,13 @@ parameters = {
     'bounds': [0.1, 1.0]
 }
 
-
-def main():
-    # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-    replicates = 5
-
-    # Run for 100 seconds maximum
-    max_steps = 100
-    distinct_samples = 10
+def main(strategies, replicates, max_steps, distinct_samples):
 
     # Set up all the parameters to be entered into the model
     model_params = {
         "vision": 2,
         "population": 200,
-        "strategies": ['nearest exit', 'follow the leader'],
+        "strategies": strategies,
     }
 
     model_reporters = {
@@ -40,8 +35,7 @@ def main():
     # Get the bounds for this variable and get <distinct_samples> samples within this space (uniform)
     prob = np.linspace(*parameters['bounds'], num=distinct_samples)
     prob = [round(x, 1) for x in prob]
-    samples = [[x, 1 - x] for x in prob]
-    print(samples)
+    samples = [(x, 1 - x) for x in prob]
     batch = BatchRunnerMP(OneExit,
                             nr_processes=4,
                             max_steps=max_steps,
@@ -56,7 +50,9 @@ def main():
 
     print(data)
     file.to_csv(
-        f"data/Exp_Prob_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision2_pop200.csv")
+        Path(__file__).parent /
+        f"data/Exp_Prob_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision2_pop200.csv"
+    )
     return data
 
 
@@ -111,13 +107,22 @@ def plot_all_vars(data, param):
 
 
 if __name__ == "__main__":
-    data = main()
-    # recall the experiment values
-    replicates = 10
-    max_steps = 10000  # within 100 second performance
-    distinct_samples = 11
-    for param in ("Mean exit time", "std exit time", "Flow", "Evacuation percentage"):
-        plot_all_vars(data, param)
-        plt.savefig(
-            f"images/Exp_Prob_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision2_pop200.png")
-        plt.show()
+    strategies_list = [('nearest exit', 'follow the leader'), ('nearest exit', 'hesitator')]
+    
+    # Set the repetitions, the amount of steps, and the amount of distinct values per variable
+    replicates = 5
+
+    # Run for 100 seconds maximum
+    max_steps = 10000
+    distinct_samples = 10
+
+    for strategies in strategies_list:
+        data = main(strategies, replicates, max_steps, distinct_samples)
+
+        for param in ("Mean exit time", "std exit time", "Flow", "Evacuation percentage", "Evacuation time"):
+            plot_all_vars(data, param)
+            plt.savefig(
+                Path(__file__).parent /
+                f"images/Exp_Prob_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_Vision2_pop200.png"
+            )
+            plt.show()

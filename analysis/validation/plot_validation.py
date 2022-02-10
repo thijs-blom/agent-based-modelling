@@ -1,18 +1,13 @@
+from pathlib import Path
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-files = ["1", "2", "3", "4", "5"]
-df = pd.DataFrame()
-
 # Read all data files
-for iteration in files:
-    filename = f"analysis/validation/data/Validation_DistinctSamples10_MaxSteps100000_Repi1_{iteration}.csv"
-    df = df.append(pd.read_csv(filename))
-    filename = f"analysis/validation/data/Validation_DistinctSamples9_MaxSteps100000_Repi1_{iteration}.csv"
-    df = df.append(pd.read_csv(filename))
-    filename = f"analysis/validation/data/Validation_DistinctSamples19_MaxSteps100000_Repi1_{iteration}.csv"
-    df = df.append(pd.read_csv(filename))
+df = pd.DataFrame()
+for file in (Path(__file__).parent / "data").iterdir():
+    df = df.append(pd.read_csv(file))
 
 x = df.groupby("init_desired_speed").mean().reset_index()["init_desired_speed"]
 y = df.groupby("init_desired_speed").mean()["Flow / Desired Velocity"]
@@ -24,8 +19,10 @@ plt.xlabel("Desired Velocity (m/s)")
 plt.ylabel(r"Pedestrian Flow (m$^{-1}$s$^{-1}$) / Desired Velocity (m/s)")
 plt.title("Pedestrian Flow Compared to Desired Velocity")
 plt.legend()
-plt.savefig("analysis/validation/images/validation_all.png")
+plt.savefig(Path(__file__).parent / "images/validation_all.png")
 plt.show()
+
+plt.clf()
 
 y = df.groupby("init_desired_speed").mean()["Evacuation time"]
 err = (1.96 * df.groupby("init_desired_speed")["Evacuation time"].std()) / np.sqrt(10)
@@ -36,5 +33,5 @@ plt.xlabel("Desired Velocity (m/s)")
 plt.ylabel("Evacuation Time (s)")
 plt.title("Evacuation Time Compared to Desired Velocity")
 plt.legend()
-plt.savefig("analysis/validation/images/validation_exit_time.png")
+plt.savefig(Path(__file__).parent / "images/validation_exit_time.png")
 plt.show()

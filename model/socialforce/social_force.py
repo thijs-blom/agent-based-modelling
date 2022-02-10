@@ -5,7 +5,7 @@ A Mesa implementation of the social force model.
 Uses numpy arrays to represent vectors.
 """
 # Python imports
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -37,8 +37,8 @@ class SocialForce(Model):
             timestep: float = 0.01,
             init_desired_speed: float = 2.0,
             prob_stressed: float = None,
-            strategies: list = None,
-            strategy_weights: list = None,
+            strategies: Tuple = None,
+            strategy_weights: Tuple = None,
             soc_strength: float = 2000,
             soc_range: float = 0.08,
             bfc: float = 120000,

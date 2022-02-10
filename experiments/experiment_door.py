@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
@@ -53,7 +55,9 @@ def main(pop):
 
     print(data)
     file.to_csv(
-        f"data/Exp_Door_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{pop}.csv")
+        Path(__file__).parent /
+        f"data/Exp_Door_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{pop}.csv"
+    )
     return data
 
 
@@ -116,5 +120,7 @@ if __name__ == "__main__":
     for param in ("Mean exit time", "std exit time", "Flow", "Evacuation percentage"):
         plot_all_vars(data, param)
         plt.savefig(
-            f"images/Exp_Door_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{sys.argv[1]}.png")
+            Path(__file__).parent /
+            f"images/Exp_Door_Outcome{param}_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}_pop{sys.argv[1]}.png"
+        )
         plt.show()

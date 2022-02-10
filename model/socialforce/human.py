@@ -70,12 +70,14 @@ class Human(Agent):
 
     def desired_dir(self) -> np.ndarray:
         """ Compute the desired direction of the agent
-        TODO: check which of these are up-to-date
         Supported strategies:
             'nearest exit': The agent wants to move towards the closest exit
-            'follow the crowd': TODO
-            'follow the leader': TODO
-            'hesitator': TODO
+            'follow the crowd': The agent always goes along with the direction its neighbours move in
+            'follow the leader': The agent follows the first person it sees with a nearest exit strategy,
+                                 'the leader', where their desired direction is towards previous location
+                                 of their leader
+            'hesitator': The agents has a 50-50 chance at each step to follow either the 'nearest exit' strategy
+                                 or the 'follow the crowd' strategy
             'least crowded exit': The agents want to move towards the least crowded exit
         """
         if self.strategy == 'nearest exit':

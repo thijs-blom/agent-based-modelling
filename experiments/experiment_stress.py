@@ -1,4 +1,6 @@
 # OFAT
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from mesa.batchrunner import BatchRunnerMP
@@ -48,7 +50,10 @@ def main():
         data[var] = batch.get_model_vars_dataframe()
 
     print(data)
-    file.to_csv(f"data/Exp_Panic_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv")
+    file.to_csv(
+        Path(__file__).parent /
+        f"data/Exp_Panic_DistinctSamples{distinct_samples}_MaxSteps{max_steps}_Repi{replicates}.csv"
+    )
 
     return data
 
@@ -107,8 +112,8 @@ if __name__ == "__main__":
     data = main()
 
     plot_all_vars(data, 'Flow')
-    plt.savefig("images/exp_desired_speed_flow.png")
+    plt.savefig(Path(__file__).parent / "images/exp_desired_speed_flow.png")
     # Mean
     # plot_all_vars(data, 'Panic level')
-    # plt.savefig("images/exp_desired_speed_panic.png")
+    # plt.savefig(Path(__file__).parent / "images/exp_desired_speed_panic.png")
     plt.show()

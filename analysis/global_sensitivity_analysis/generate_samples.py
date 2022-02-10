@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 import numpy as np
@@ -40,7 +41,7 @@ def main(names: List[str], repetitions: int):
 
     for name, partition in zip(names, partitions):
         for i in range(repetitions):
-            np.save(f"samples/samples_{name}_{i + 1}", partition)
+            np.save(str(Path(__file__).parent / f"samples/samples_{name}_{i + 1}"), partition)
 
 
 if __name__ == "__main__":
