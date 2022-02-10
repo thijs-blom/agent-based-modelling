@@ -3,6 +3,23 @@
 The model was adapted and tuned according to the equations and values from this paper: Helbing, D., Farkas, I. J., Molnar, P., & Vicsek, T. (2002). Simulation of pedestrian crowds in normal and evacuation situations. Pedestrian and evacuation dynamics, 21(2), 21-58.
 We implemented the sensitivity analysis ourselves.
 
+# Table of Contents
+* [Social Force Model](#social-force-model)
+* [Table of Contents](#table-of-contents)
+* [Project Structure](#project-structure)
+  * [Analysis](#analysis)
+  * [Experiments](#experiments)
+  * [Model](#model)
+  * [Visualization](#visualization)
+* [How to install](#how-to-install)
+* [How to run](#how-to-run)
+  * [Running the visualization](#running-the-visualization)
+  * [Running the analysis](#running-the-analysis)
+    * [Global sensitivity analysis](#global-sensitivity-analysis)
+    * [Local sensitivity analysis](#local-sensitivity-analysis)
+    * [Validation](#validation)
+  * [Running the experiments](#running-the-experiments)
+
 # Project structure
 ## Analysis
 The `analysis` directory contains all files (scrips, data, results) from the global sensitivity analysis, local sensitivity analysis and the validation. Details on how to run the scripts can be found in the section `How to run`. In each subdirectory of the `analysis` directory, there is a `data` directory containing results, an `images` directory containing plots and visualizations, and other files required to run the analysis.
