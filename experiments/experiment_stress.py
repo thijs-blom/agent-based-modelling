@@ -25,7 +25,7 @@ def main():
         "Flow": lambda m: m.flow(),
         "Evacuation percentage": lambda m: m.evacuation_percentage(),
         "Evacuation time": lambda m: m.evacuation_time(),
-        "Mean desired speed": lambda m: m.count_desired_speed(),
+        "Mean desired speed": lambda m: m.average_desired_speed(),
         "Panic level": lambda m: m.panic_level,
     }
 

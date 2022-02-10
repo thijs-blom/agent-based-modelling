@@ -14,17 +14,6 @@ class Human(Agent):
         Helbing, D., Farkas, I. J., Molnar, P., & Vicsek, T. (2002). 
         Simulation of pedestrian crowds in normal and evacuation situations. 
         Pedestrian and evacuation dynamics, 21(2), 21-58.
-
-    The following parameter values are set in CommonHuman, since they are the same among agents
-        tau: the default relaxation parameter
-        min_noise: the min scale of noise added to agent's movement, SAME for each agent
-        max_noise: the max scale of noise added to agent's movement, SAME for each agent
-        bfc: body_force_constant
-        sfc: sliding friction force constant
-        lead_strength: the leading strength of any leader neighbor agent
-        lead_range: the leading force impact range of any leader neighbor agent
-        soc_strength: the interaction strength between agent and the others
-        soc_range: the range of repulsive interaction
     """
 
     def __init__(
@@ -51,18 +40,17 @@ class Human(Agent):
             unique_id: Unique agent identifier.
             model: Reference to the model object this agent is part of
             pos: Starting position, center of mass for agent
-            dest: The destination the agent wants to reach
-            velocity: Velocity vector indicating speed of movement
-            max_speed: the maximum speed of agent
-            vision: Radius to look around for nearby agents.
-            mass: the weight / mass of the agent 
-            radius: the radii of the agent
+            velocity: Velocity vector indicating speed of movement (m/s)
+            max_speed: the maximum speed of agent (m/s)
+            vision: Radius to look around for nearby agents (m)
+            mass: the mass of the agent (kg)
+            radius: the radius of the agent (m)
             lam: the 'front impact' parameter of agent to describe the anisotropic character of pedestrian interaction
-            panic: The panic level of agent
             current_timestep: The current time step t
-            init_speed: The initial speed of agent
-            init_desire_speed : the initial desired speed
-            is_leader: whether the agent is a leader
+            init_speed: The initial speed of agent (m/s)
+            init_desired_speed : the initial desired speed (m/s)
+            relax_t: The time it takes this agent to adjust to their desired direction (s)
+            strategy: The strategy assigned to this agent for evacuation
         """
         super().__init__(unique_id, model)
         self.pos = np.array(pos)
@@ -82,9 +70,13 @@ class Human(Agent):
 
     def desired_dir(self) -> np.ndarray:
         """ Compute the desired direction of the agent
-            When strategy is 'nearest exit', the desired direction is the closest exit;
-            When strategy is 'follow the crowd', the desired direction is closest exit (80% likelihood) or neighbor_direction (20% likelihood);
-            When strategy is 'least crowded exit', the desired direction is the least crowded exit.
+        TODO: check which of these are up-to-date
+        Supported strategies:
+            'nearest exit': The agent wants to move towards the closest exit
+            'follow the crowd': TODO
+            'follow the leader': TODO
+            'hesitator': TODO
+            'least crowded exit': The agents want to move towards the least crowded exit
         """
         if self.strategy == 'nearest exit':
             # Go to the (center of) the nearest exit
@@ -100,7 +92,7 @@ class Human(Agent):
 
         elif self.strategy == 'follow the leader':
             # Only follow the direction your neighbours are following
-            self.dest = self.nearest_exit().get_center()            
+            self.dest = self.nearest_exit().get_center()
             if np.linalg.norm(self.pos - self.dest) < self.vision:
                 dir = self.dest - self.pos
                 dir /= np.linalg.norm(dir)
@@ -136,10 +128,13 @@ class Human(Agent):
             dir = self.dest - self.pos
             dir /= np.linalg.norm(dir)
 
+        else:
+            raise ValueError(f"Strategy '{self.strategy}' is not supported.")
+
         return dir
 
     def nearest_exit(self) -> Exit:
-        """Find the nearest exit relative to this agent"""
+        """Returns the nearest exit relative to this agent"""
         closest = None
         smallest_dist = np.inf
         for exit in self.model.exits:
@@ -150,13 +145,14 @@ class Human(Agent):
         return closest
 
     def least_crowded_exit(self) -> Exit:
-        # define exit business as a dictionary
+        """Returns the least crowded exit"""
+        # Check how crowded each exit is
         business = {}
-        for i, exit in enumerate(self.model.exits):
-            # exit_name = f'exit{i}'
-            business[i] = len(self.model.space.get_neighbors(exit.get_center(), 10, False))
-        nb_exit = min(business, key=business.get)
-        return self.model.exits[nb_exit]
+        for exit in self.model.exits:
+            business[exit] = len(self.model.space.get_neighbors(exit.get_center(), 10, False))
+
+        # Return the least crowded exit
+        return min(business, key=business.get)
 
     def neighbor_direction(self, origin_dir: np.ndarray) -> np.ndarray:
         # find the neighbors' direction
@@ -164,6 +160,7 @@ class Human(Agent):
         # original direction is the same as the nearest exit
         sum_of_direction = origin_dir
 
+        # Consider the velocities of neighbours
         for other in neighbours:
             v = other.velocity
             sum_of_direction += v / np.linalg.norm(v)
@@ -189,43 +186,61 @@ class Human(Agent):
                     dir /= np.linalg.norm(dir)
                     repeat = False
                     break
-            
+
             vision_times += 1
 
         return dir
 
     def panic_index(self, desired_dir: np.ndarray = None):
-        """Compute the panic index of agent using average speed"""
+        """Computes the panic index of agent using average speed"""
         # Compute average speed into desired direction for the agent
         if self.timestep != 0:
+            # Compute the desired direction if not already known
             if desired_dir is None:
                 desired_dir = self.desired_dir()
-            # progress can be either negative and positive
+
+            # Compute and update the positive or negative progress towards the destination
             progress_t = np.dot(self.velocity, desired_dir)
             self.avg_progress = (self.avg_progress * (self.timestep - 1) + progress_t) / self.timestep
+
+        # Compute and return the panic
         panic = 1 - self.avg_progress / self.init_desired_speed
-        if panic < 0:
-            return 0
-        else:
-            return panic
+        return np.clip(panic, 0, None)
 
     def desired_speed(self, panic_index: float = None):
-        """ Compute the current desired speed of agent : v0_i(t)"""
-        # eq 11 of baseline paper
+        """Computes the current desired speed of agent: v0_i(t)"""
+        # Compute the panic index if not already known
         if panic_index is None:
             panic_index = self.panic_index()
-        return (1-panic_index) * self.init_desired_speed + panic_index * self.max_speed
+
+        # Compute and return the desired speed
+        return (1 - panic_index) * self.init_desired_speed + panic_index * self.max_speed
 
     def acceleration_term(self, desired_dir: np.ndarray = None, panic_index: float = None) -> np.ndarray:
-        """Compute the acceleration Term of agent"""
+        """Computes the acceleration term of agent
+
+        Args:
+            desired_dir: The desired direction of the agent. May be passed to prevent unnecessary computations.
+            panic_index: The panic index of the agent. May be passed to prevent unnecessary computation.
+        """
+        # Compute the desired direction if not already known
         if desired_dir is None:
             desired_dir = self.desired_dir()
+
+        # Compute the panic index if not already known
         if panic_index is None:
             panic_index = self.panic_index(desired_dir)
+
+        # Compute and return the acceleration term
         return (self.desired_speed(panic_index) * desired_dir - self.velocity) / self.tau
 
     def people_repulsive_effect(self, other: Human, d=None) -> np.ndarray:
-        """Stub to split people_effect in more functions"""
+        """Computes the repulsive social force from another agent
+
+        Args:
+            other: The agent that this agent wants to move away from
+            d: The distance between the agents. May be passed to prevent unnecessary computation.
+        """
         # Define some variables used in the equation defining the force
         d = d if d else np.linalg.norm(self.pos - other.pos)
         r = self.radius + other.radius - d
@@ -239,7 +254,14 @@ class Human(Agent):
         return social_force
 
     def crash_effect(self, other: Human, d=None) -> np.ndarray:
-        """Stub to split people_effect in more functions"""
+        """Computes the force caused by two agents crashing into each other
+
+        Note that this force is only non-zero when to agents are colliding.
+
+        Args:
+            other: The agent that this agent (may) be crashing into.
+            d: The distance between the agents. May be passed to prevent unnecessary computation
+        """
         d = d if d else np.linalg.norm(self.pos - other.pos)
         r = self.radius + other.radius - d
         n = (self.pos - other.pos) / d
@@ -257,9 +279,15 @@ class Human(Agent):
         return sliding_force + body_force
 
     def boundary_effect(self, obstacle: Obstacle, max_dist: float = None) -> np.ndarray:
-        """Repulsive effect from an obstacle"""
+        """Computes the repulsive force from an obstacle
+
+        Args:
+            obstacle: The obstacle this agent is trying to avoid
+            max_dist: The furthest distance from the agent that obstacles are considered.
+        """
+
         def theta(z: float) -> float:
-            """The identifier function return z if z >= 0, otherwise 0"""
+            """Returns z if z >= 0, otherwise 0"""
             return z if z > 0 else 0
 
         # Get the closest point of the obstacle w.r.t. the agent's current position
@@ -276,16 +304,14 @@ class Human(Agent):
         # Compute a normal of n, which is therefore tangential to the obstacle
         t = np.flip(n) * np.array([-1, 1])
 
-        # eq 7 in baseline
-        obt_force = (self.model.obs_strength * np.exp((self.radius - d)/self.model.obs_range) + self.model.bfc * theta(self.radius - d)) * n \
+        # TODO: fix this formatting
+        obt_force = (self.model.obs_strength * np.exp((self.radius - d) / self.model.obs_range) + self.model.bfc * theta(self.radius - d)) * n \
             - self.model.sfc * theta(self.radius - d) * np.dot(self.velocity, t) * t
 
         return obt_force
 
     def step(self):
-        """
-        Compute all forces acting on this agent, update its velocity and move.
-        """
+        """Computes all forces acting on this agent, updates its velocity and move."""
         desired_dir = self.desired_dir()
         self.panic = self.panic_index(desired_dir)
 
@@ -331,6 +357,6 @@ class Human(Agent):
         # Remove the agent from the model if it has reached an exit
         for exit in self.model.exits:
             if exit.in_exit(self.pos, self.radius):
-                self.model.exit_times.append(self.timestep*self.model.timestep)
+                self.model.exit_times.append(self.timestep * self.model.timestep)
                 self.model.remove_agent(self)
                 break

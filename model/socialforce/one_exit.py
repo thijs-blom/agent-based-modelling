@@ -6,7 +6,8 @@ from .wall import Wall
 
 
 class OneExit(SocialForce):
-    """Social Force but then for different door sizes."""
+    """Social force model with predefined walls and an exit"""
+
     def __init__(self, width: float = 15, height: float = 15, door_size: float = 1, **kwargs):
         """
         Args:
@@ -24,16 +25,17 @@ class OneExit(SocialForce):
             Wall(np.array([width / 2 + door_size / 2, height]), np.array([width, height]))
         ]
 
-        # Define exit
+        # Define the exit
         exits = [
             Exit(np.array([width / 2 - door_size / 2, height]), np.array([width / 2 + door_size / 2, height]))]
 
+        # Add any additional obstacles passed
         if "obstacles" in kwargs:
             obstacles += kwargs["obstacles"]
             del kwargs["obstacles"]
 
+        # Do not allow additional exits
         if "exits" in kwargs:
-            # TODO: do we want to add them to the model? Since it's called _One_ExitModel
             del kwargs["exits"]
 
         # Instantiate SocialForce with the specified walls and exit, passing along any other keyword arguments

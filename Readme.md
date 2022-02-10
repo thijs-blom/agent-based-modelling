@@ -1,20 +1,134 @@
 ## Social Force Model
 
-This implements the Social Force Model. We adapted code from the Boids Flocker Model from from https://github.com/projectmesa/mesa/tree/main/examples/boid_flockers. However, most files have been severely changed and the file `boid.py` has been (severely) modified and renamed to `human.py`.
-The model was adapted and tuned according to the equations and values from this paper: Helbing, D., Farkas, I. J., Molnar, P., & Vicsek, T. (2002). Simulation of pedestrian crowds in normal and evacuation situations. Pedestrian and evacuation dynamics, 21(2), 21-58.
-We implemented the sensitivity analysis ourselves.
+This project contains an implementation of the social force model, a global and local sensitivity analysis, experiments and a visualization.
 
-## How to run
+The model description, equations, and parameter values are adapted from the paper "Helbing, D., Farkas, I. J., Molnar, P., & Vicsek, T. (2002). Simulation of pedestrian crowds in normal and evacuation situations. Pedestrian and evacuation dynamics, 21(2), 21-58".
 
-Install requirements using `pip install -r requirements.txt`.
+# Table of Contents
+* [Social Force Model](#social-force-model)
+* [Table of Contents](#table-of-contents)
+* [Project Structure](#project-structure)
+  * [Analysis](#analysis)
+  * [Experiments](#experiments)
+  * [Model](#model)
+  * [Visualization](#visualization)
+* [How to install](#how-to-install)
+* [How to run](#how-to-run)
+  * [Running the visualization](#running-the-visualization)
+  * [Running the analysis](#running-the-analysis)
+    * [Global sensitivity analysis](#global-sensitivity-analysis)
+    * [Local sensitivity analysis](#local-sensitivity-analysis)
+    * [Validation](#validation)
+  * [Running the experiments](#running-the-experiments)
 
-* Launch the visualization
+# Project structure
+## Analysis
+The `analysis` directory contains all files (scrips, data, results) from the global sensitivity analysis, local sensitivity analysis and the validation. Details on how to run the scripts can be found in the section `How to run`. In each subdirectory of the `analysis` directory, there is a `data` directory containing results, an `images` directory containing plots and visualizations, and other files required to run the analysis.
+
+## Experiments
+The `experiments` directory contains code and results from experiments with
+* varying door sizes,
+* differing strategies between agents,
+* varying stress levels among agents.
+
+The resulting data can be found in the `data` subdirectory.
+Plots generated from these experiments are located in the `images` subdiretory.
+
+
+## Model
+The `model` directory contains the core code of the model.
+It is a self-contained Python package, and the module `socialforce` in the package is built and installed when processing `requirements.txt` (see `How to install`). 
+
+The agents of the model are defined in `human.py`, which contains most of the logic of the model.
+It defines the desired goals of the agent (such as its destination), and the forces acting on it.
+
+The environment is defined in `social_force.py`.
+It is used to keep track of all agents, obstacles, exits, time, and relevant statistics.
+The environment can be modified by changing the parameters of the `SocialForce` class in `social_force.py` (see the class documentation).
+A specific environment can be found in `one_exit.py`.
+This environment contains a rectangular room with a single exit in the center of the wall.
+This environment is used sensitivity analysis, validation, and the experiments.
+
+Further documentation on exits and obstacles can be found in `exit.py`, and `obstacle.py` and `wall.py` respectively.
+
+
+## Visualization
+The `visualization` directory contains scripts to run a visualization of the simulation in the browser.
+It is started by calling the `launch()` function in `server.py`, which should be done as described in section `How to run`.
+
+The files `simple_contunous_canvas.js` and `simple_continuous_module.py` are adapted from the mesa example project [Boid Flockers](https://github.com/projectmesa/mesa/tree/main/examples/boid_flockers).
+
+# How to install
+* Clone this repository using `git clone git@github.com:thijs-blom/agent-based-modelling && cd agent-based-modelling`.
+* Create a python virtual environment using `python3 -m venv env`
+* Activate the virtual environment using `source ./env/bin/activate` (Linux / macOS) or `./env/Scripts/Activate` (Windows).
+* From the root directory of the project (containing `requirements.txt`), run the following commands
+```
+pip install wheel
+pip install -r requirements.txt
+```
+Note that it is important to run this command from the correct directory, as `requirements.txt` contains relative paths.
+
+# How to run
+For the following, we assume any commands are run in the python virtual environment as created in the previous section.
+## Running the visualization
+The default visualization can be launched by running
 ```
     $ mesa runserver
 ```
+This runs a simulation as defined in `visualization/server.py`.
+To modify the visualised experiment, parameters can be changed in `visualization/server.py`, as documented in `model/socialforce/social_force.py`.
+## Running the analysis
+### Global sensitivity analysis
+The global sensitivity analysis is split into the following three separate parts:
+* Generating samples from the parameter space
+* Running the experiment for these parameter values
+* Analyzing the resulting data
 
-Or:
+Samples used for analysis can be found in the `samples` directory.
+These can be generated by running `python ./generate_samples.py` in the `global_sensitivity_analysis` directory.
+This will create distinct samples using Saltelli's sampling scheme with N=512 and 4 parameters, resulting in 512*(4+2) = 3072 distinct sample points.
+These are then divided in (roughly) equal partitions to allow running batches of experiments on different computers.
+Each partition is replicated 5 times, marked by the final `_x.npy` in the filename.
 
+Using `python ./batch_run.py <file> <nr_processes>`, the experiments can be run to collect data for the generated samples.
+The `<file>` parameter passed may be any file containing samples generated by `generate_samples.py`.
+Results will be stored in the `data` directory.
+The script creates a number of processes as specified by the parameter `<nr_processes>`.
+This allows multiple experiments to be executed in parallel.
+Note that setting this value to a higher value may reduce performance of the computer in other applications during execution.
+
+Example:
 ```
-    $ python server.py
+python ./batch_run.py samples/samples_Thijs_1.npy 8
 ```
+
+Analysis is done in the Jupyter notebook `Sobol_Analysis.ipynb` and can be viewed using `jupyter-notebook Sobol_Analysis.ipynb`.
+
+### Local sensitivity analysis
+The script and results used for the local sensivity analysis can be found in the `analysis/local_sensivity_analysis` directory.
+It can be run using `python ./sensitivity_analysis.py`, which is a self-contained script.
+This will run the required simulations, store the data in the `data` subdirectory, and create plots in the `images` subdirectory.
+
+### Validation
+Resources for validation are stored in the `analysis/validation` directory.
+It can be run using `python ./validation.py`, which will run the required simulations, store the data in the `data` subdirectory, store plots in the `images` subdirectory, and show the plots on the screen.
+
+Additional plots for validation can be generated by running `python ./plot_validation.py`.
+The resulting plots will be stored in the `images` subdirectory.
+
+## Running the experiments
+Experiments are stored in the `experiments` directory.
+Resulting data and plots/visualizations can be found in the `data` subdirectory and the `images` subdirectory respectively.
+
+The actual experiments are contained in
+* `experiment_door.py`,
+* `experiment_strategy.py`,
+* `experiment_stress.py`.
+
+These are all self-contained scripts and can be run using `python ./script_name.py`.
+only `experiment_door.py` takes a command-line argument (population size) and should be run as `python ./experiment_door.py <pop_size>`.
+
+These scripts each create plots and store them in the `images` subdirectory.
+Additional plots for the stress experiment can be obtained by running `experiment_stress_plots.py`.
+Likewise, additional plots for the door size experiment can be found by running `jupyter-notebook Data_Analysis_Door.ipynb`.

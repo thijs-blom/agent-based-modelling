@@ -1,5 +1,5 @@
 import argparse
-import os
+from pathlib import Path
 from typing import Dict
 
 import numpy as np
@@ -38,7 +38,6 @@ def batch_run(samples: np.ndarray,
     df["obs_strength"] = df["sample"].apply(lambda s: s.obs_strength)
     df = df.drop(columns=["sample"])
 
-    # TODO: check if this is necessary
     # Reorder the columns to give the same dataframe as if the sample parameters
     # were directly passed as variable parameters. May not be necessary, but might
     # be handy for consistency.
@@ -49,11 +48,11 @@ def batch_run(samples: np.ndarray,
     return df
 
 
-def main(input_file: str,
-         output_file: str,
+def main(input_file: Path,
+         output_file: Path,
          processes: int = 4):
     # Load the generated samples
-    samples = np.load(input_file)
+    samples = np.load(str(input_file))
 
     # The maximum number of ticks the simulation will run for
     # TODO: define the number of steps
@@ -78,16 +77,15 @@ def main(input_file: str,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run a batch of simulations for global sensitivity analysis.')
 
-    parser.add_argument('filename', type=str, help="Name of the file containing the samples")
+    parser.add_argument('file', type=Path, help="Path of the file containing the samples")
     parser.add_argument('nr_processes', type=int, help="Number of processes to use for computation")
 
     args = parser.parse_args()
 
-    if not os.path.exists(f"samples/{args.filename}"):
-        raise ValueError("The specified file does not exist. Make sure you have pulled the samples from git " +
-                         "and passed the correct filename.")
+    if not args.file.exists():
+        raise ValueError("The specified file does not exist. Check the samples directory for files")
 
     # Replace the extension with csv for the output file
-    filename_out = args.filename.split('.')[0] + '.csv'
+    file_out = Path(f"data/{args.file.stem}.csv")
 
-    main(input_file=f"samples/{args.filename}", output_file=f"data/{filename_out}", processes=args.nr_processes)
+    main(input_file=args.file, output_file=file_out, processes=args.nr_processes)

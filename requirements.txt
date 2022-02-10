@@ -5,3 +5,4 @@ pandas~=1.3.5
 SALib~=1.4.5
 tqdm~=4.62.3
 ./model
+jupyter
