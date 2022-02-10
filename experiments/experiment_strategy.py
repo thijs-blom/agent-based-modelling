@@ -10,14 +10,7 @@ parameters = {
     'bounds': [0.1, 1.0]
 }
 
-
-def main(strategies):
-    # Set the repetitions, the amount of steps, and the amount of distinct values per variable
-    replicates = 5
-
-    # Run for 100 seconds maximum
-    max_steps = 10000
-    distinct_samples = 10
+def main(strategies, replicates, max_steps, distinct_samples):
 
     # Set up all the parameters to be entered into the model
     model_params = {
@@ -112,8 +105,15 @@ def plot_all_vars(data, param):
 if __name__ == "__main__":
     strategies_list = [('nearest exit', 'follow the leader'), ('nearest exit', 'hesitator')]
     
+    # Set the repetitions, the amount of steps, and the amount of distinct values per variable
+    replicates = 5
+
+    # Run for 100 seconds maximum
+    max_steps = 10000
+    distinct_samples = 10
+
     for strategies in strategies_list:
-        data = main(strategies)
+        data = main(strategies, replicates, max_steps, distinct_samples)
 
         for param in ("Mean exit time", "std exit time", "Flow", "Evacuation percentage", "Evacuation time"):
             plot_all_vars(data, param)
