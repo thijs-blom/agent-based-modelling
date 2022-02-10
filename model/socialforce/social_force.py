@@ -134,7 +134,7 @@ class SocialForce(Model):
             mass = np.random.uniform(50, 80)
             radius = np.random.uniform(0.37, 0.55) / 2
             relax_t = self.relaxation_time
-            strategy = np.random.choice(strategies, strategy_weights)
+            strategy = np.random.choice(strategies, p=strategy_weights)
             current_timestep = 0
 
             # Determine the agent's initial speed

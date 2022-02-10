@@ -6,21 +6,24 @@ from socialforce.one_exit import OneExit
 import numpy as np
 
 parameters = {
-    'names': ['prob_nearest'],
-    'bounds': [[0.5, 1.0]]
+    'names': 'strategy_weights',
+    'bounds': [0.1, 1.0]
 }
 
 
 def main():
     # Set the repetitions, the amount of steps, and the amount of distinct values per variable
     replicates = 5
-    max_steps = 10000  # within 100 second performance
-    distinct_samples = 6
+
+    # Run for 100 seconds maximum
+    max_steps = 100
+    distinct_samples = 10
 
     # Set up all the parameters to be entered into the model
     model_params = {
         "vision": 2,
-        "population": 200
+        "population": 200,
+        "strategies": ['nearest exit', 'follow the leader'],
     }
 
     model_reporters = {
@@ -34,21 +37,22 @@ def main():
     data = {}
     file = pd.DataFrame()
 
-    for i, var in enumerate(parameters['names']):
-        # Get the bounds for this variable and get <distinct_samples> samples within this space (uniform)
-        samples = np.linspace(*parameters['bounds'][i], num=distinct_samples)
-
-        batch = BatchRunnerMP(OneExit,
-                              nr_processes=8,
-                              max_steps=max_steps,
-                              iterations=replicates,
-                              fixed_parameters=model_params,
-                              variable_parameters={var: samples},
-                              model_reporters=model_reporters,
-                              display_progress=True)
-        batch.run_all()
-        file = file.append(batch.get_model_vars_dataframe())
-        data[var] = batch.get_model_vars_dataframe()
+    # Get the bounds for this variable and get <distinct_samples> samples within this space (uniform)
+    prob = np.linspace(*parameters['bounds'], num=distinct_samples)
+    prob = [round(x, 1) for x in prob]
+    samples = [[x, 1 - x] for x in prob]
+    print(samples)
+    batch = BatchRunnerMP(OneExit,
+                            nr_processes=4,
+                            max_steps=max_steps,
+                            iterations=replicates,
+                            fixed_parameters=model_params,
+                            variable_parameters={parameters['names']: samples},
+                            model_reporters=model_reporters,
+                            display_progress=True)
+    batch.run_all()
+    file = file.append(batch.get_model_vars_dataframe())
+    data[parameters['names']] = batch.get_model_vars_dataframe()
 
     print(data)
     file.to_csv(

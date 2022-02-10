@@ -29,8 +29,7 @@ visualization_elements = [
 ]
 
 obstacles = [
-    Wall(np.array([0, 0]), np.array([0, height / 2 - door_size / 2])),
-    Wall(np.array([0, height / 2 + door_size / 2]), np.array([0, height])),
+    Wall(np.array([0, 0]), np.array([0, height])),
     Wall(np.array([0, 0]), np.array([width, 0])),
     Wall(np.array([width, 0]), np.array([width, height])),
     Wall(np.array([0, height]), np.array([width / 2 - door_size / 2, height])),
@@ -39,7 +38,6 @@ obstacles = [
 
 exits = [
     Exit(np.array([width / 2 - door_size / 2, height]), np.array([width / 2 + door_size / 2, height])),
-    Exit(np.array([0, height / 2 - door_size / 2]), np.array([0, height / 2 + door_size / 2])),
 ]
 
 datacollector = DataCollector(
